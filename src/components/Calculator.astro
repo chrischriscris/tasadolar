@@ -74,10 +74,15 @@ const { bcvRate, binanceRate } = Astro.props;
     resBin: $('#res-bin') as HTMLElement,
   };
 
-  const bcvRaw = el.calc.dataset.bcv;
-  const binRaw = el.calc.dataset.bin;
-  const bcv = bcvRaw ? parseFloat(bcvRaw) : NaN;
-  const bin = binRaw ? parseFloat(binRaw) : NaN;
+  // Read rates live from data-* so client-side fallback patches are picked up
+  function rates() {
+    const b = el.calc.dataset.bcv;
+    const n = el.calc.dataset.bin;
+    return {
+      bcv: b ? parseFloat(b) : NaN,
+      bin: n ? parseFloat(n) : NaN,
+    };
+  }
 
   let mode: 'usd' | 'bs' = 'usd';
 
@@ -107,6 +112,7 @@ const { bcvRate, binanceRate } = Astro.props;
   }
 
   function compute() {
+    const { bcv, bin } = rates();
     const raw = el.input.value.replace(/\./g, '').replace(',', '.');
     const v = parseFloat(raw);
     if (!v || v <= 0) {
