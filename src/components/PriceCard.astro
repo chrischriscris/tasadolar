@@ -1,0 +1,76 @@
+---
+import type { Rate } from '../lib/types';
+
+interface Props {
+  rate: Rate;
+  label: string;
+  sublabel: string;
+  accent?: string;
+}
+
+const { rate, label, sublabel, accent = 'emerald' } = Astro.props;
+
+function formatPrice(price: number): string {
+  return price.toLocaleString('es-VE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function timeAgo(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60_000);
+
+  if (diffMin < 1) return 'hace un momento';
+  if (diffMin === 1) return 'hace 1 minuto';
+  if (diffMin < 60) return `hace ${diffMin} minutos`;
+
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours === 1) return 'hace 1 hora';
+  if (diffHours < 24) return `hace ${diffHours} horas`;
+
+  return `hace ${Math.floor(diffHours / 24)} dias`;
+}
+
+const accentClasses: Record<string, { border: string; badge: string; price: string }> = {
+  emerald: {
+    border: 'border-emerald-500/30',
+    badge: 'bg-emerald-500/15 text-emerald-400',
+    price: 'text-emerald-400',
+  },
+  amber: {
+    border: 'border-amber-500/30',
+    badge: 'bg-amber-500/15 text-amber-400',
+    price: 'text-amber-400',
+  },
+};
+
+const colors = accentClasses[accent] ?? accentClasses.emerald;
+---
+
+<div
+  class={`relative rounded-2xl border ${colors.border} bg-slate-900/60 backdrop-blur-sm p-6 sm:p-8 flex flex-col items-center gap-4 w-full max-w-xs transition-all`}
+>
+  <span class={`text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full ${colors.badge}`}>
+    {label}
+  </span>
+  <span class="text-sm text-slate-400">{sublabel}</span>
+
+  {rate.error ? (
+    <div class="text-center">
+      <p class="text-2xl font-bold text-slate-500">--</p>
+      <p class="text-xs text-red-400 mt-2">No disponible</p>
+    </div>
+  ) : (
+    <div class="text-center">
+      <p class={`text-4xl sm:text-5xl font-extrabold tracking-tight ${colors.price}`}>
+        Bs {formatPrice(rate.price!)}
+      </p>
+      <p class="text-xs text-slate-500 mt-3">
+        {timeAgo(rate.updatedAt!)}
+      </p>
+    </div>
+  )}
+</div>

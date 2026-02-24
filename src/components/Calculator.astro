@@ -1,0 +1,128 @@
+---
+interface Props {
+  bcvRate: number;
+  binanceRate: number;
+}
+
+const { bcvRate, binanceRate } = Astro.props;
+---
+
+<section
+  id="calc"
+  class="w-full max-w-md mx-auto"
+  data-bcv={bcvRate}
+  data-bin={binanceRate}
+>
+  <h2 class="text-lg font-bold text-center mb-4 text-slate-300">Calculadora</h2>
+
+  <!-- Currency toggle -->
+  <div class="flex justify-center mb-4">
+    <button
+      id="btn-usd"
+      type="button"
+      class="px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors bg-emerald-500/15 text-emerald-400 border-emerald-500/40"
+    >
+      $ &rarr; Bs
+    </button>
+    <button
+      id="btn-bs"
+      type="button"
+      class="px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
+    >
+      Bs &rarr; $
+    </button>
+  </div>
+
+  <!-- Input -->
+  <div class="relative mb-5">
+    <span
+      id="input-symbol"
+      class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold select-none"
+    >$</span>
+    <input
+      id="calc-input"
+      type="text"
+      inputmode="decimal"
+      autocomplete="off"
+      placeholder="0.00"
+      class="w-full rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 text-xl font-semibold pl-10 pr-4 py-3 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-colors placeholder:text-slate-600"
+    />
+  </div>
+
+  <!-- Results -->
+  <div class="grid grid-cols-2 gap-3">
+    <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-4 text-center">
+      <p class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
+      <p id="res-bcv" class="text-xl font-bold text-emerald-400 tabular-nums">—</p>
+    </div>
+    <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-4 text-center">
+      <p class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
+      <p id="res-bin" class="text-xl font-bold text-amber-400 tabular-nums">—</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const $ = (s: string) => document.querySelector(s)!;
+  const el = {
+    calc: $('#calc') as HTMLElement,
+    input: $('#calc-input') as HTMLInputElement,
+    symbol: $('#input-symbol') as HTMLElement,
+    btnUsd: $('#btn-usd') as HTMLButtonElement,
+    btnBs: $('#btn-bs') as HTMLButtonElement,
+    resBcv: $('#res-bcv') as HTMLElement,
+    resBin: $('#res-bin') as HTMLElement,
+  };
+
+  const bcv = parseFloat(el.calc.dataset.bcv!);
+  const bin = parseFloat(el.calc.dataset.bin!);
+
+  // mode: "usd" = $ -> Bs, "bs" = Bs -> $
+  let mode: 'usd' | 'bs' = 'usd';
+
+  const fmt = (n: number, decimals = 2) =>
+    n.toLocaleString('es-VE', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+
+  const activeBtn = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40';
+  const inactiveBtn = 'text-slate-400 bg-slate-800/60';
+
+  function setMode(m: 'usd' | 'bs') {
+    mode = m;
+    if (m === 'usd') {
+      el.symbol.textContent = '$';
+      el.input.placeholder = '0.00';
+      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${activeBtn}`;
+      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+    } else {
+      el.symbol.textContent = 'Bs';
+      el.input.placeholder = '0,00';
+      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${activeBtn}`;
+      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
+    }
+    compute();
+  }
+
+  function compute() {
+    const raw = el.input.value.replace(/\./g, '').replace(',', '.');
+    const v = parseFloat(raw);
+    if (!v || v <= 0) {
+      el.resBcv.textContent = '—';
+      el.resBin.textContent = '—';
+      return;
+    }
+    if (mode === 'usd') {
+      el.resBcv.textContent = `Bs ${fmt(v * bcv)}`;
+      el.resBin.textContent = `Bs ${fmt(v * bin)}`;
+    } else {
+      el.resBcv.textContent = `$ ${fmt(v / bcv)}`;
+      el.resBin.textContent = `$ ${fmt(v / bin)}`;
+    }
+  }
+
+  el.input.addEventListener('input', compute);
+  el.btnUsd.addEventListener('click', () => setMode('usd'));
+  el.btnBs.addEventListener('click', () => setMode('bs'));
+</script>

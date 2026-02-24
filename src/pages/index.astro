@@ -1,0 +1,62 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PriceCard from '../components/PriceCard.astro';
+import Calculator from '../components/Calculator.astro';
+import { fetchBcvRate } from '../lib/bcv';
+import { fetchBinanceP2PRate } from '../lib/binance';
+
+// ISR: cache at the edge for 5 minutes, serve stale while revalidating
+Astro.response.headers.set(
+  'Cache-Control',
+  'public, s-maxage=300, stale-while-revalidate=60'
+);
+
+// Fetch both rates in parallel
+const [bcv, binance] = await Promise.all([
+  fetchBcvRate(),
+  fetchBinanceP2PRate(),
+]);
+
+const now = new Date().toLocaleString('es-VE', {
+  timeZone: 'America/Caracas',
+  dateStyle: 'long',
+  timeStyle: 'short',
+});
+---
+
+<Layout>
+  <main class="w-full max-w-2xl mx-auto flex flex-col items-center gap-8">
+    <header class="text-center">
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+        Tasa del <span class="text-emerald-400">Dolar</span>
+      </h1>
+      <p class="text-slate-400 mt-2 text-sm sm:text-base">
+        Precio en bolivares (VES)
+      </p>
+    </header>
+
+    <div class="flex flex-col sm:flex-row gap-6 w-full justify-center items-center">
+      <PriceCard
+        rate={bcv}
+        label="BCV"
+        sublabel="Tasa Oficial"
+        accent="emerald"
+      />
+      <PriceCard
+        rate={binance}
+        label="Binance P2P"
+        sublabel="USDT / VES (mediana)"
+        accent="amber"
+      />
+    </div>
+
+    {(!bcv.error && !binance.error) && (
+      <Calculator bcvRate={bcv.price!} binanceRate={binance.price!} />
+    )}
+
+    <footer class="text-center text-xs text-slate-600 mt-4 space-y-1">
+      <p>Actualizado: {now} (hora de Caracas)</p>
+      <p>Se actualiza automaticamente cada 5 minutos</p>
+    </footer>
+  </main>
+</Layout>
