@@ -50,9 +50,10 @@ const now = new Date().toLocaleString('es-VE', {
       />
     </div>
 
-    {(!bcv.error && !binance.error) && (
-      <Calculator bcvRate={bcv.price!} binanceRate={binance.price!} />
-    )}
+    <Calculator
+      bcvRate={bcv.error ? null : bcv.price}
+      binanceRate={binance.error ? null : binance.price}
+    />
 
     <footer class="text-center text-xs text-slate-600 mt-4 space-y-1">
       <p>Actualizado: {now} (hora de Caracas)</p>

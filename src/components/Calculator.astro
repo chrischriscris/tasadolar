@@ -1,7 +1,7 @@
 ---
 interface Props {
-  bcvRate: number;
-  binanceRate: number;
+  bcvRate: number | null;
+  binanceRate: number | null;
 }
 
 const { bcvRate, binanceRate } = Astro.props;
@@ -10,8 +10,8 @@ const { bcvRate, binanceRate } = Astro.props;
 <section
   id="calc"
   class="w-full max-w-md mx-auto"
-  data-bcv={bcvRate}
-  data-bin={binanceRate}
+  data-bcv={bcvRate ?? ''}
+  data-bin={binanceRate ?? ''}
 >
   <h2 class="text-lg font-bold text-center mb-4 text-slate-300">Calculadora</h2>
 
@@ -74,10 +74,11 @@ const { bcvRate, binanceRate } = Astro.props;
     resBin: $('#res-bin') as HTMLElement,
   };
 
-  const bcv = parseFloat(el.calc.dataset.bcv!);
-  const bin = parseFloat(el.calc.dataset.bin!);
+  const bcvRaw = el.calc.dataset.bcv;
+  const binRaw = el.calc.dataset.bin;
+  const bcv = bcvRaw ? parseFloat(bcvRaw) : NaN;
+  const bin = binRaw ? parseFloat(binRaw) : NaN;
 
-  // mode: "usd" = $ -> Bs, "bs" = Bs -> $
   let mode: 'usd' | 'bs' = 'usd';
 
   const fmt = (n: number, decimals = 2) =>
@@ -114,11 +115,11 @@ const { bcvRate, binanceRate } = Astro.props;
       return;
     }
     if (mode === 'usd') {
-      el.resBcv.textContent = `Bs ${fmt(v * bcv)}`;
-      el.resBin.textContent = `Bs ${fmt(v * bin)}`;
+      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `Bs ${fmt(v * bcv)}`;
+      el.resBin.textContent = isNaN(bin) ? 'N/D' : `Bs ${fmt(v * bin)}`;
     } else {
-      el.resBcv.textContent = `$ ${fmt(v / bcv)}`;
-      el.resBin.textContent = `$ ${fmt(v / bin)}`;
+      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `$ ${fmt(v / bcv)}`;
+      el.resBin.textContent = isNaN(bin) ? 'N/D' : `$ ${fmt(v / bin)}`;
     }
   }
 
