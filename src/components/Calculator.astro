@@ -9,11 +9,11 @@ const { bcvRate, binanceRate } = Astro.props;
 
 <section
   id="calc"
-  class="w-full max-w-md mx-auto"
+  class="w-full max-w-md mx-auto px-1 sm:px-0"
   data-bcv={bcvRate ?? ''}
   data-bin={binanceRate ?? ''}
 >
-  <h2 class="text-lg font-bold text-center mb-4 text-slate-300">Calculadora</h2>
+  <h2 class="text-base sm:text-lg font-bold text-center mb-3 sm:mb-4 text-slate-300">Calculadora</h2>
 
   <!-- Currency toggle -->
   <div class="flex justify-center mb-4">
@@ -50,14 +50,14 @@ const { bcvRate, binanceRate } = Astro.props;
   </div>
 
   <!-- Results -->
-  <div class="grid grid-cols-2 gap-3">
-    <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-4 text-center">
-      <p class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
-      <p id="res-bcv" class="text-xl font-bold text-emerald-400 tabular-nums">—</p>
+  <div class="grid grid-cols-2 gap-2 sm:gap-3">
+    <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
+      <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
+      <p id="res-bcv" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums">—</p>
     </div>
-    <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-4 text-center">
-      <p class="text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
-      <p id="res-bin" class="text-xl font-bold text-amber-400 tabular-nums">—</p>
+    <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
+      <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
+      <p id="res-bin" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums">—</p>
     </div>
   </div>
 </section>

@@ -16,16 +16,40 @@ const {
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0f172a" />
     <meta http-equiv="refresh" content="300" />
+
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- iOS PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tasa Dolar" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Android PWA enhancements -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
     <title>{title}</title>
   </head>
   <body
-    class="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center px-4 py-8 font-sans antialiased"
+    class="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center px-4 py-6 sm:py-8 font-sans antialiased"
   >
     <slot />
+
+    <!-- Register service worker for PWA -->
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
   </body>
 </html>
