@@ -44,7 +44,7 @@ const { bcvRate, binanceRate } = Astro.props;
       type="text"
       inputmode="decimal"
       autocomplete="off"
-      maxlength="15"
+      maxlength="19"
       placeholder="0.00"
       class="w-full rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 text-xl font-semibold pl-10 pr-4 py-3 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-colors placeholder:text-slate-600"
     />
@@ -114,13 +114,34 @@ const { bcvRate, binanceRate } = Astro.props;
 
   const MAX_VALUE = 999_999_999; // cap input to avoid floating-point issues
 
+  function formatWithThousands(value: string): string {
+    // Split into integer and decimal parts (comma is decimal separator)
+    const parts = value.split(',');
+    let intPart = parts[0].replace(/\./g, ''); // remove existing thousand seps
+    // Add thousand separators (dots)
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return parts.length > 1 ? `${intPart},${parts[1]}` : intPart;
+  }
+
   function sanitizeInput() {
-    const cursor = el.input.selectionStart;
+    const cursor = el.input.selectionStart ?? 0;
+    const oldVal = el.input.value;
     // Allow only digits, dots (thousand sep) and comma (decimal sep)
-    const clean = el.input.value.replace(/[^\d.,]/g, '');
-    if (clean !== el.input.value) {
-      el.input.value = clean;
-      el.input.selectionStart = el.input.selectionEnd = Math.max(0, (cursor ?? 1) - 1);
+    let clean = oldVal.replace(/[^\d.,]/g, '');
+    // Ensure only one comma (decimal separator)
+    const commaIdx = clean.indexOf(',');
+    if (commaIdx !== -1) {
+      clean = clean.slice(0, commaIdx + 1) + clean.slice(commaIdx + 1).replace(/,/g, '');
+    }
+    // Count dots before cursor in old value (to adjust cursor after reformatting)
+    const dotsBefore = (oldVal.slice(0, cursor).match(/\./g) || []).length;
+    const formatted = formatWithThousands(clean);
+    if (formatted !== oldVal) {
+      el.input.value = formatted;
+      // Adjust cursor: account for change in number of dots
+      const dotsBeforeNew = (formatted.slice(0, cursor).match(/\./g) || []).length;
+      const newCursor = cursor + (dotsBeforeNew - dotsBefore);
+      el.input.selectionStart = el.input.selectionEnd = Math.max(0, newCursor);
     }
   }
 
