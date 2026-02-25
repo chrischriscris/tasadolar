@@ -3,13 +3,35 @@ import type { Rate, BinanceP2PResponse } from './types';
 const BINANCE_P2P_URL =
   'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search';
 
-function median(numbers: number[]): number {
-  const sorted = [...numbers].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 0) {
-    return (sorted[mid - 1] + sorted[mid]) / 2;
+async function fetchP2PAds(
+  tradeType: 'BUY' | 'SELL',
+  signal: AbortSignal
+): Promise<number[]> {
+  const response = await fetch(BINANCE_P2P_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fiat: 'VES',
+      page: 1,
+      rows: 10,
+      tradeType,
+      asset: 'USDT',
+      payTypes: [],
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Binance P2P API returned ${response.status} for ${tradeType}`);
   }
-  return sorted[mid];
+
+  const data: BinanceP2PResponse = await response.json();
+
+  if (!data.data || data.data.length === 0) {
+    throw new Error(`No P2P ${tradeType} ads returned`);
+  }
+
+  return data.data.map((ad) => parseFloat(ad.adv.price));
 }
 
 export async function fetchBinanceP2PRate(): Promise<Rate> {
@@ -17,38 +39,23 @@ export async function fetchBinanceP2PRate(): Promise<Rate> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
-    const response = await fetch(BINANCE_P2P_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fiat: 'VES',
-        page: 1,
-        rows: 10,
-        tradeType: 'SELL',
-        asset: 'USDT',
-        payTypes: [],
-      }),
-      signal: controller.signal,
-    });
+    // Fetch BUY and SELL ads in parallel
+    const [buyPrices, sellPrices] = await Promise.all([
+      fetchP2PAds('BUY', controller.signal),
+      fetchP2PAds('SELL', controller.signal),
+    ]);
     clearTimeout(timeout);
 
-    if (!response.ok) {
-      throw new Error(`Binance P2P API returned ${response.status}`);
-    }
+    // Best price to sell USDT = highest BUY ad price
+    const bestBuy = Math.max(...buyPrices);
+    // Best price to buy USDT = lowest SELL ad price
+    const bestSell = Math.min(...sellPrices);
 
-    const data: BinanceP2PResponse = await response.json();
-
-    if (!data.data || data.data.length === 0) {
-      throw new Error('No P2P ads returned');
-    }
-
-    const prices = data.data.map((ad) => parseFloat(ad.adv.price));
-    const medianPrice = median(prices);
+    // Mid-market rate: average of the two best prices
+    const midPrice = (bestBuy + bestSell) / 2;
 
     return {
-      price: medianPrice,
+      price: midPrice,
       updatedAt: new Date().toISOString(),
       source: 'Binance P2P',
     };

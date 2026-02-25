@@ -50,11 +50,23 @@ const now = new Date().toLocaleString('es-VE', {
       <PriceCard
         rate={binance}
         label="Binance P2P"
-        sublabel="USDT / VES (mediana)"
+        sublabel="USDT / VES (promedio)"
         accent="amber"
         id="card-bin"
       />
     </div>
+
+    {/* Brecha cambiaria */}
+    {!bcv.error && !binance.error && bcv.price && binance.price && (
+      <div id="brecha" class="w-full max-w-md mx-auto text-center">
+        <div class="inline-flex items-center gap-2 rounded-xl border border-slate-700/50 bg-slate-900/60 backdrop-blur-sm px-5 py-3">
+          <span class="text-sm text-slate-400">Brecha cambiaria</span>
+          <span class={`text-lg font-bold ${binance.price > bcv.price ? 'text-red-400' : 'text-emerald-400'}`}>
+            {binance.price > bcv.price ? '+' : ''}{(((binance.price - bcv.price) / bcv.price) * 100).toFixed(2)}%
+          </span>
+        </div>
+      </div>
+    )}
 
     <Calculator
       bcvRate={'price' in bcv && bcv.price != null ? bcv.price : null}
@@ -100,18 +112,57 @@ const now = new Date().toLocaleString('es-VE', {
           calc.dataset[key] = String(price);
         }
 
+        function patchBrecha(bcvPrice, binPrice) {
+          if (!bcvPrice || !binPrice) return;
+          var pct = ((binPrice - bcvPrice) / bcvPrice) * 100;
+          var sign = pct > 0 ? '+' : '';
+          var color = pct > 0 ? 'text-red-400' : 'text-emerald-400';
+          var existing = document.getElementById('brecha');
+          if (existing) {
+            var span = existing.querySelector('.text-lg');
+            if (span) {
+              span.className = 'text-lg font-bold ' + color;
+              span.textContent = sign + pct.toFixed(2) + '%';
+            }
+          } else {
+            var container = document.querySelector('main');
+            var calcEl = document.getElementById('calc');
+            if (!container || !calcEl) return;
+            var div = document.createElement('div');
+            div.id = 'brecha';
+            div.className = 'w-full max-w-md mx-auto text-center';
+            div.innerHTML =
+              '<div class="inline-flex items-center gap-2 rounded-xl border border-slate-700/50 bg-slate-900/60 backdrop-blur-sm px-5 py-3">' +
+              '<span class="text-sm text-slate-400">Brecha cambiaria</span>' +
+              '<span class="text-lg font-bold ' + color + '">' + sign + pct.toFixed(2) + '%</span>' +
+              '</div>';
+            container.insertBefore(div, calcEl);
+          }
+        }
+
         var only = needBcv && needBin ? '' : needBcv ? '?only=bcv' : '?only=bin';
         fetch('/api/rates' + only)
           .then(function (r) { return r.json(); })
           .then(function (d) {
+            var bcvPrice = null;
+            var binPrice = null;
             if (needBcv && d.bcv && !d.bcv.error) {
               patchCard('card-bcv', d.bcv.price);
               patchCalc('bcv', d.bcv.price);
+              bcvPrice = d.bcv.price;
             }
             if (needBin && d.binance && !d.binance.error) {
               patchCard('card-bin', d.binance.price);
               patchCalc('bin', d.binance.price);
+              binPrice = d.binance.price;
             }
+            // Also read existing rate from calc data if we only fetched one
+            var calc = document.getElementById('calc');
+            if (calc) {
+              if (!bcvPrice && calc.dataset.bcv) bcvPrice = parseFloat(calc.dataset.bcv);
+              if (!binPrice && calc.dataset.bin) binPrice = parseFloat(calc.dataset.bin);
+            }
+            patchBrecha(bcvPrice, binPrice);
           })
           .catch(function () {});
       })();
