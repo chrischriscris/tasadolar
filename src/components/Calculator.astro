@@ -44,6 +44,7 @@ const { bcvRate, binanceRate } = Astro.props;
       type="text"
       inputmode="decimal"
       autocomplete="off"
+      maxlength="15"
       placeholder="0.00"
       class="w-full rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 text-xl font-semibold pl-10 pr-4 py-3 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-colors placeholder:text-slate-600"
     />
@@ -53,11 +54,11 @@ const { bcvRate, binanceRate } = Astro.props;
   <div class="grid grid-cols-2 gap-2 sm:gap-3">
     <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
       <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
-      <p id="res-bcv" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums">—</p>
+      <p id="res-bcv" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums truncate">—</p>
     </div>
     <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
       <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
-      <p id="res-bin" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums">—</p>
+      <p id="res-bin" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums truncate">—</p>
     </div>
   </div>
 </section>
@@ -111,21 +112,35 @@ const { bcvRate, binanceRate } = Astro.props;
     compute();
   }
 
+  const MAX_VALUE = 999_999_999; // cap input to avoid floating-point issues
+
+  function sanitizeInput() {
+    const cursor = el.input.selectionStart;
+    // Allow only digits, dots (thousand sep) and comma (decimal sep)
+    const clean = el.input.value.replace(/[^\d.,]/g, '');
+    if (clean !== el.input.value) {
+      el.input.value = clean;
+      el.input.selectionStart = el.input.selectionEnd = Math.max(0, (cursor ?? 1) - 1);
+    }
+  }
+
   function compute() {
+    sanitizeInput();
     const { bcv, bin } = rates();
     const raw = el.input.value.replace(/\./g, '').replace(',', '.');
     const v = parseFloat(raw);
-    if (!v || v <= 0) {
+    if (!v || v <= 0 || !isFinite(v)) {
       el.resBcv.textContent = '—';
       el.resBin.textContent = '—';
       return;
     }
+    const capped = Math.min(v, MAX_VALUE);
     if (mode === 'usd') {
-      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `Bs ${fmt(v * bcv)}`;
-      el.resBin.textContent = isNaN(bin) ? 'N/D' : `Bs ${fmt(v * bin)}`;
+      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `Bs ${fmt(capped * bcv)}`;
+      el.resBin.textContent = isNaN(bin) ? 'N/D' : `Bs ${fmt(capped * bin)}`;
     } else {
-      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `$ ${fmt(v / bcv)}`;
-      el.resBin.textContent = isNaN(bin) ? 'N/D' : `$ ${fmt(v / bin)}`;
+      el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `$ ${fmt(capped / bcv)}`;
+      el.resBin.textContent = isNaN(bin) ? 'N/D' : `$ ${fmt(capped / bin)}`;
     }
   }
 
