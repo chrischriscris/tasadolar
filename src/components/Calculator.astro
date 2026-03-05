@@ -60,11 +60,11 @@ const { bcvRate, binanceRate } = Astro.props;
   <!-- Results -->
   <div class="grid grid-cols-2 gap-2 sm:gap-3">
     <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
-      <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
+      <p id="label-bcv" class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
       <p id="res-bcv" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums truncate">—</p>
     </div>
     <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
-      <p class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
+      <p id="label-bin" class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
       <p id="res-bin" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums truncate">—</p>
     </div>
   </div>
@@ -79,6 +79,8 @@ const { bcvRate, binanceRate } = Astro.props;
     btnUsd: $('#btn-usd') as HTMLButtonElement,
     btnBs: $('#btn-bs') as HTMLButtonElement,
     btnCompare: $('#btn-compare') as HTMLButtonElement,
+    labelBcv: $('#label-bcv') as HTMLElement,
+    labelBin: $('#label-bin') as HTMLElement,
     resBcv: $('#res-bcv') as HTMLElement,
     resBin: $('#res-bin') as HTMLElement,
   };
@@ -113,18 +115,24 @@ const { bcvRate, binanceRate } = Astro.props;
       el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${activeBtn}`;
       el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
       el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.labelBcv.textContent = 'BCV';
+      el.labelBin.textContent = 'Binance P2P';
     } else if (m === 'bs') {
       el.symbol.textContent = 'Bs';
       el.input.placeholder = '0,00';
       el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${activeBtn}`;
       el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
       el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.labelBcv.textContent = 'BCV';
+      el.labelBin.textContent = 'Binance P2P';
     } else {
       el.symbol.textContent = '$';
       el.input.placeholder = '0.00';
       el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${activeBtnRight}`;
       el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
       el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.labelBcv.textContent = 'Binance P2P → BCV';
+      el.labelBin.textContent = 'BCV → Binance P2P';
     }
     compute();
   }
@@ -189,8 +197,8 @@ const { bcvRate, binanceRate } = Astro.props;
       } else {
         const binToBcv = (capped * bin) / bcv;
         const bcvToBin = (capped * bcv) / bin;
-        el.resBcv.textContent = `$ ${fmt(binToBcv)} (Binance→BCV)`;
-        el.resBin.textContent = `$ ${fmt(bcvToBin)} (BCV→Binance)`;
+        el.resBcv.textContent = `$ ${fmt(binToBcv)}`;
+        el.resBin.textContent = `$ ${fmt(bcvToBin)}`;
       }
     }
   }
