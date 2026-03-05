@@ -37,7 +37,7 @@ async function fetchP2PAds(
 export async function fetchBinanceP2PRate(): Promise<Rate> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
     // Fetch BUY and SELL ads in parallel
     const [buyPrices, sellPrices] = await Promise.all([

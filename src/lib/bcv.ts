@@ -37,7 +37,7 @@ export async function fetchBcvRate(): Promise<Rate> {
   for (const url of BCV_URLS) {
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const data = await tryFetch(url, 8000);
+        const data = await tryFetch(url, 5000);
         return {
           price: data.promedio,
           updatedAt: data.fechaActualizacion,

@@ -21,6 +21,10 @@ const {
     <meta name="theme-color" content="#0f172a" />
     <meta http-equiv="refresh" content="300" />
 
+    <!-- Preconnect to external APIs -->
+    <link rel="preconnect" href="https://ve.dolarapi.com" crossorigin />
+    <link rel="preconnect" href="https://p2p.binance.com" crossorigin />
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
@@ -43,11 +47,13 @@ const {
   >
     <slot />
 
-    <!-- Register service worker for PWA -->
+    <!-- Register service worker for PWA with immediate activation -->
     <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
+          navigator.serviceWorker.register('/sw.js').then(function (reg) {
+            reg.update();
+          }).catch(function () {});
         });
       }
     </script>

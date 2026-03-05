@@ -1,4 +1,6 @@
-const CACHE_NAME = 'tasadolar-v1';
+const CACHE_NAME = 'tasadolar-v2';
+const API_CACHE_NAME = 'tasadolar-api-v2';
+
 const STATIC_ASSETS = [
   '/favicon.svg',
   '/favicon.ico',
@@ -6,6 +8,38 @@ const STATIC_ASSETS = [
   '/icons/icon-512x512.png',
   '/manifest.webmanifest',
 ];
+
+const API_CACHE_DURATION = 60 * 1000; // 1 minute for API cache
+const STATIC_CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours for static assets
+
+function getTimestamp() {
+  return Date.now();
+}
+
+async function cacheWithExpiration(cacheName, request, response) {
+  const cache = await caches.open(cacheName);
+  const responseClone = response.clone();
+  const expirationTimestamp = getTimestamp() + (cacheName === API_CACHE_NAME ? API_CACHE_DURATION : STATIC_CACHE_DURATION);
+  
+  const headers = new Headers(responseClone.headers);
+  headers.set('sw-cache-timestamp', String(expirationTimestamp));
+  
+  const expiredResponse = new Response(responseClone.body, {
+    status: responseClone.status,
+    statusText: responseClone.statusText,
+    headers,
+  });
+  
+  await cache.put(request, expiredResponse);
+  return response;
+}
+
+function isCacheExpired(response) {
+  if (!response) return true;
+  const timestamp = response.headers.get('sw-cache-timestamp');
+  if (!timestamp) return false;
+  return Date.now() > parseInt(timestamp, 10);
+}
 
 // Install: pre-cache static assets
 self.addEventListener('install', (event) => {
@@ -21,7 +55,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => key !== CACHE_NAME && key !== API_CACHE_NAME)
           .map((key) => caches.delete(key))
       )
     )
@@ -37,13 +71,29 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (request.method !== 'GET') return;
 
-  // Skip cross-origin requests
-  if (url.origin !== self.location.origin) return;
+  // Skip cross-origin requests (but allow API calls to external services)
+  if (url.origin !== self.location.origin && !url.pathname.startsWith('/api/')) return;
 
-  // API requests: network-only (don't cache stale rates)
+  // API requests: stale-while-revalidate with short cache
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request).catch(() => caches.match(request))
+      caches.open(API_CACHE_NAME).then(async (cache) => {
+        const cached = await cache.match(request);
+        const fetchPromise = fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              cacheWithExpiration(API_CACHE_NAME, request, response);
+            }
+            return response;
+          })
+          .catch(() => cached);
+
+        // Return cached immediately if available and not expired, otherwise wait for network
+        if (cached && !isCacheExpired(cached)) {
+          return cached;
+        }
+        return fetchPromise;
+      })
     );
     return;
   }
@@ -53,22 +103,24 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          if (response.ok) {
+            cacheWithExpiration(CACHE_NAME, request, response);
+          }
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(() => caches.match(request).then((cached) => cached || new Response('Offline', { status: 503 })))
     );
     return;
   }
 
-  // Static assets (CSS, JS, images, fonts): cache-first
+  // Static assets (CSS, JS, images, fonts): cache-first with network fallback
   event.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) return cached;
+      if (cached && !isCacheExpired(cached)) return cached;
       return fetch(request).then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+        if (response.ok) {
+          cacheWithExpiration(CACHE_NAME, request, response);
+        }
         return response;
       });
     })

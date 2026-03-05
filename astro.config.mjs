@@ -11,4 +11,12 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
+  compressHTML: true,
+  build: {
+    inlineStylesheets: 'auto',
+  },
 });
