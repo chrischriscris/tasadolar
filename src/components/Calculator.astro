@@ -27,9 +27,16 @@ const { bcvRate, binanceRate } = Astro.props;
     <button
       id="btn-bs"
       type="button"
-      class="px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
+      class="px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
     >
       Bs &rarr; $
+    </button>
+    <button
+      id="btn-compare"
+      type="button"
+      class="px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
+    >
+      $ &rarr; $
     </button>
   </div>
 
@@ -71,6 +78,7 @@ const { bcvRate, binanceRate } = Astro.props;
     symbol: $('#input-symbol') as HTMLElement,
     btnUsd: $('#btn-usd') as HTMLButtonElement,
     btnBs: $('#btn-bs') as HTMLButtonElement,
+    btnCompare: $('#btn-compare') as HTMLButtonElement,
     resBcv: $('#res-bcv') as HTMLElement,
     resBin: $('#res-bin') as HTMLElement,
   };
@@ -85,7 +93,7 @@ const { bcvRate, binanceRate } = Astro.props;
     };
   }
 
-  let mode: 'usd' | 'bs' = 'usd';
+  let mode: 'usd' | 'bs' | 'compare' = 'usd';
 
   const fmt = (n: number, decimals = 2) =>
     n.toLocaleString('es-VE', {
@@ -95,19 +103,28 @@ const { bcvRate, binanceRate } = Astro.props;
 
   const activeBtn = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40';
   const inactiveBtn = 'text-slate-400 bg-slate-800/60';
+  const activeBtnRight = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40';
 
-  function setMode(m: 'usd' | 'bs') {
+  function setMode(m: 'usd' | 'bs' | 'compare') {
     mode = m;
     if (m === 'usd') {
       el.symbol.textContent = '$';
       el.input.placeholder = '0.00';
       el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${activeBtn}`;
-      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
-    } else {
+      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+    } else if (m === 'bs') {
       el.symbol.textContent = 'Bs';
       el.input.placeholder = '0,00';
-      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${activeBtn}`;
+      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${activeBtn}`;
       el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
+      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+    } else {
+      el.symbol.textContent = '$';
+      el.input.placeholder = '0.00';
+      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${activeBtnRight}`;
+      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
+      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
     }
     compute();
   }
@@ -159,13 +176,27 @@ const { bcvRate, binanceRate } = Astro.props;
     if (mode === 'usd') {
       el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `Bs ${fmt(capped * bcv)}`;
       el.resBin.textContent = isNaN(bin) ? 'N/D' : `Bs ${fmt(capped * bin)}`;
-    } else {
+    } else if (mode === 'bs') {
       el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `$ ${fmt(capped / bcv)}`;
       el.resBin.textContent = isNaN(bin) ? 'N/D' : `$ ${fmt(capped / bin)}`;
+    } else {
+      // compare mode: $ at Binance rate = ? $ at BCV rate, and vice versa
+      // If you have $X at Binance rate (worth X*bin Bs), that's X*bin/bcv dollars at BCV rate
+      // If you have $X at BCV rate (worth X*bcv Bs), that's X*bcv/bin dollars at Binance rate
+      if (isNaN(bcv) || isNaN(bin) || bcv === 0 || bin === 0) {
+        el.resBcv.textContent = 'N/D';
+        el.resBin.textContent = 'N/D';
+      } else {
+        const binToBcv = (capped * bin) / bcv;
+        const bcvToBin = (capped * bcv) / bin;
+        el.resBcv.textContent = `$ ${fmt(binToBcv)} (Binance→BCV)`;
+        el.resBin.textContent = `$ ${fmt(bcvToBin)} (BCV→Binance)`;
+      }
     }
   }
 
   el.input.addEventListener('input', compute);
   el.btnUsd.addEventListener('click', () => setMode('usd'));
   el.btnBs.addEventListener('click', () => setMode('bs'));
+  el.btnCompare.addEventListener('click', () => setMode('compare'));
 </script>
