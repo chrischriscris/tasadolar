@@ -1,15 +1,18 @@
 ---
 import type { Rate } from '../lib/types';
+import Card from './ui/card.astro';
+import CardHeader from './ui/card-header.astro';
+import CardContent from './ui/card-content.astro';
 
 interface Props {
   rate: Rate;
   label: string;
   sublabel: string;
-  accent?: string;
+  variant?: 'bcv' | 'binance';
   id?: string;
 }
 
-const { rate, label, sublabel, accent = 'emerald', id } = Astro.props;
+const { rate, label, sublabel, variant = 'bcv', id } = Astro.props;
 
 function formatPrice(price: number): string {
   return price.toLocaleString('es-VE', {
@@ -35,44 +38,50 @@ function timeAgo(dateStr: string): string {
   return `hace ${Math.floor(diffHours / 24)} dias`;
 }
 
-const accentClasses: Record<string, { border: string; badge: string; price: string }> = {
-  emerald: {
-    border: 'border-emerald-500/30',
-    badge: 'bg-emerald-500/15 text-emerald-400',
-    price: 'text-emerald-400',
+const variantStyles = {
+  bcv: {
+    badge: 'bg-primary/15 text-primary border-primary/20',
+    price: 'text-primary',
+    glow: 'shadow-primary/5',
   },
-  amber: {
-    border: 'border-amber-500/30',
-    badge: 'bg-amber-500/15 text-amber-400',
+  binance: {
+    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
     price: 'text-amber-400',
+    glow: 'shadow-amber-500/5',
   },
 };
 
-const colors = accentClasses[accent] ?? accentClasses.emerald;
+const styles = variantStyles[variant];
 ---
 
-<div
+<Card
   id={id}
-  class={`relative rounded-2xl border ${colors.border} bg-slate-900/60 backdrop-blur-sm p-5 sm:p-8 flex flex-col items-center gap-3 sm:gap-4 w-full sm:max-w-xs transition-all`}
+  class={`relative overflow-hidden bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-all duration-300 hover:shadow-lg ${styles.glow}`}
 >
-  <span class={`text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full ${colors.badge}`}>
-    {label}
-  </span>
-  <span class="text-sm text-slate-400">{sublabel}</span>
-
-  {rate.error ? (
-    <div class="text-center">
-      <p class="text-2xl font-bold text-slate-500">--</p>
-      <p class="text-xs text-red-400 mt-2">No disponible</p>
+  <CardHeader class="pb-2">
+    <div class="flex items-center justify-between">
+      <span class={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-semibold ${styles.badge}`}>
+        {label}
+      </span>
     </div>
-  ) : (
-    <div class="text-center">
-      <p class={`text-4xl sm:text-5xl font-extrabold tracking-tight ${colors.price}`}>
-        Bs {formatPrice(rate.price!)}
-      </p>
-      <p class="text-xs text-slate-500 mt-3">
-        {timeAgo(rate.updatedAt!)}
-      </p>
-    </div>
-  )}
-</div>
+    <p class="text-xs text-muted-foreground mt-1">{sublabel}</p>
+  </CardHeader>
+  
+  <CardContent>
+    {rate.error ? (
+      <div class="text-center py-2">
+        <p class="text-2xl font-bold text-muted-foreground">--</p>
+        <p class="text-xs text-destructive mt-1">No disponible</p>
+      </div>
+    ) : (
+      <div class="text-center py-2">
+        <p class={`text-4xl sm:text-5xl font-bold tracking-tight ${styles.price}`}>
+          Bs {formatPrice(rate.price!)}
+        </p>
+        <p class="text-xs text-muted-foreground mt-3">
+          {timeAgo(rate.updatedAt!)}
+        </p>
+      </div>
+    )}
+  </CardContent>
+</Card>

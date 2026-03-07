@@ -1,4 +1,9 @@
 ---
+import Card from './ui/card.astro';
+import CardHeader from './ui/card-header.astro';
+import CardTitle from './ui/card-title.astro';
+import CardContent from './ui/card-content.astro';
+
 interface Props {
   bcvRate: number | null;
   binanceRate: number | null;
@@ -9,65 +14,70 @@ const { bcvRate, binanceRate } = Astro.props;
 
 <section
   id="calc"
-  class="w-full max-w-md mx-auto px-1 sm:px-0"
+  class="w-full max-w-md mx-auto"
   data-bcv={bcvRate ?? ''}
   data-bin={binanceRate ?? ''}
 >
-  <h2 class="text-base sm:text-lg font-bold text-center mb-3 sm:mb-4 text-slate-300">Calculadora</h2>
+  <Card class="bg-card/50 backdrop-blur-sm border-border/50">
+    <CardHeader class="pb-3">
+      <CardTitle class="text-center text-base">Calculadora</CardTitle>
+    </CardHeader>
+    
+    <CardContent class="space-y-4">
+      <div class="flex justify-center">
+        <div class="inline-flex rounded-lg border border-border p-1 bg-muted/30">
+          <button
+            id="btn-usd"
+            type="button"
+            class="mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all bg-primary text-primary-foreground"
+          >
+            $ → Bs
+          </button>
+          <button
+            id="btn-bs"
+            type="button"
+            class="mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all text-muted-foreground hover:text-foreground"
+          >
+            Bs → $
+          </button>
+          <button
+            id="btn-compare"
+            type="button"
+            class="mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all text-muted-foreground hover:text-foreground"
+          >
+            $ → $
+          </button>
+        </div>
+      </div>
 
-  <!-- Currency toggle -->
-  <div class="flex justify-center mb-4">
-    <button
-      id="btn-usd"
-      type="button"
-      class="px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors bg-emerald-500/15 text-emerald-400 border-emerald-500/40"
-    >
-      $ &rarr; Bs
-    </button>
-    <button
-      id="btn-bs"
-      type="button"
-      class="px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
-    >
-      Bs &rarr; $
-    </button>
-    <button
-      id="btn-compare"
-      type="button"
-      class="px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors text-slate-400 bg-slate-800/60"
-    >
-      $ &rarr; $
-    </button>
-  </div>
+      <div class="relative">
+        <span
+          id="input-symbol"
+          class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium text-sm"
+        >$</span>
+        <input
+          id="calc-input"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          maxlength="19"
+          placeholder="0.00"
+          class="flex h-11 w-full rounded-lg border border-input bg-background px-3 py-2 text-lg font-semibold pl-8 ring-offset-background transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+      </div>
 
-  <!-- Input -->
-  <div class="relative mb-5">
-    <span
-      id="input-symbol"
-      class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-semibold select-none"
-    >$</span>
-    <input
-      id="calc-input"
-      type="text"
-      inputmode="decimal"
-      autocomplete="off"
-      maxlength="19"
-      placeholder="0.00"
-      class="w-full rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 text-xl font-semibold pl-10 pr-4 py-3 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/25 transition-colors placeholder:text-slate-600"
-    />
-  </div>
-
-  <!-- Results -->
-  <div class="grid grid-cols-2 gap-2 sm:gap-3">
-    <div class="rounded-xl border border-emerald-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
-      <p id="label-bcv" class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">BCV</p>
-      <p id="res-bcv" class="text-lg sm:text-xl font-bold text-emerald-400 tabular-nums truncate">—</p>
-    </div>
-    <div class="rounded-xl border border-amber-500/20 bg-slate-900/50 p-3 sm:p-4 text-center">
-      <p id="label-bin" class="text-[10px] sm:text-[11px] uppercase tracking-widest text-slate-500 mb-1">Binance P2P</p>
-      <p id="res-bin" class="text-lg sm:text-xl font-bold text-amber-400 tabular-nums truncate">—</p>
-    </div>
-  </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-lg border border-primary/20 bg-primary/5 p-4 text-center">
+          <p id="label-bcv" class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">BCV</p>
+          <p id="res-bcv" class="text-lg font-bold text-primary tabular-nums truncate">—</p>
+        </div>
+        <div class="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+          <p id="label-bin" class="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Binance P2P</p>
+          <p id="res-bin" class="text-lg font-bold text-amber-400 tabular-nums truncate">—</p>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
 </section>
 
 <script>
@@ -85,7 +95,6 @@ const { bcvRate, binanceRate } = Astro.props;
     resBin: $('#res-bin') as HTMLElement,
   };
 
-  // Read rates live from data-* so client-side fallback patches are picked up
   function rates() {
     const b = el.calc.dataset.bcv;
     const n = el.calc.dataset.bin;
@@ -103,47 +112,43 @@ const { bcvRate, binanceRate } = Astro.props;
       maximumFractionDigits: decimals,
     });
 
-  const activeBtn = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40';
-  const inactiveBtn = 'text-slate-400 bg-slate-800/60';
-  const activeBtnRight = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40';
+  const activeClass = 'bg-primary text-primary-foreground';
+  const inactiveClass = 'text-muted-foreground hover:text-foreground';
 
   function setMode(m: 'usd' | 'bs' | 'compare') {
     mode = m;
+    const buttons = [el.btnUsd, el.btnBs, el.btnCompare];
+    buttons.forEach(btn => {
+      btn.className = `mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all ${inactiveClass}`;
+    });
+
     if (m === 'usd') {
       el.symbol.textContent = '$';
       el.input.placeholder = '0.00';
-      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${activeBtn}`;
-      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
-      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.btnUsd.className = `mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all ${activeClass}`;
       el.labelBcv.textContent = 'BCV';
       el.labelBin.textContent = 'Binance P2P';
     } else if (m === 'bs') {
       el.symbol.textContent = 'Bs';
       el.input.placeholder = '0,00';
-      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${activeBtn}`;
-      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
-      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
+      el.btnBs.className = `mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all ${activeClass}`;
       el.labelBcv.textContent = 'BCV';
       el.labelBin.textContent = 'Binance P2P';
     } else {
       el.symbol.textContent = '$';
       el.input.placeholder = '0.00';
-      el.btnCompare.className = `px-4 py-1.5 text-sm font-semibold rounded-r-lg border border-l-0 border-slate-700 transition-colors ${activeBtnRight}`;
-      el.btnUsd.className = `px-4 py-1.5 text-sm font-semibold rounded-l-lg border border-slate-700 transition-colors ${inactiveBtn}`;
-      el.btnBs.className = `px-4 py-1.5 text-sm font-semibold border border-l-0 border-slate-700 transition-colors ${inactiveBtn}`;
-      el.labelBcv.textContent = 'Binance P2P → BCV';
-      el.labelBin.textContent = 'BCV → Binance P2P';
+      el.btnCompare.className = `mode-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all ${activeClass}`;
+      el.labelBcv.textContent = 'Binance → BCV';
+      el.labelBin.textContent = 'BCV → Binance';
     }
     compute();
   }
 
-  const MAX_VALUE = 999_999_999; // cap input to avoid floating-point issues
+  const MAX_VALUE = 999_999_999;
 
   function formatWithThousands(value: string): string {
-    // Split into integer and decimal parts (comma is decimal separator)
     const parts = value.split(',');
-    let intPart = parts[0].replace(/\./g, ''); // remove existing thousand seps
-    // Add thousand separators (dots)
+    let intPart = parts[0].replace(/\./g, '');
     intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return parts.length > 1 ? `${intPart},${parts[1]}` : intPart;
   }
@@ -151,19 +156,15 @@ const { bcvRate, binanceRate } = Astro.props;
   function sanitizeInput() {
     const cursor = el.input.selectionStart ?? 0;
     const oldVal = el.input.value;
-    // Allow only digits, dots (thousand sep) and comma (decimal sep)
     let clean = oldVal.replace(/[^\d.,]/g, '');
-    // Ensure only one comma (decimal separator)
     const commaIdx = clean.indexOf(',');
     if (commaIdx !== -1) {
       clean = clean.slice(0, commaIdx + 1) + clean.slice(commaIdx + 1).replace(/,/g, '');
     }
-    // Count dots before cursor in old value (to adjust cursor after reformatting)
     const dotsBefore = (oldVal.slice(0, cursor).match(/\./g) || []).length;
     const formatted = formatWithThousands(clean);
     if (formatted !== oldVal) {
       el.input.value = formatted;
-      // Adjust cursor: account for change in number of dots
       const dotsBeforeNew = (formatted.slice(0, cursor).match(/\./g) || []).length;
       const newCursor = cursor + (dotsBeforeNew - dotsBefore);
       el.input.selectionStart = el.input.selectionEnd = Math.max(0, newCursor);
@@ -188,9 +189,6 @@ const { bcvRate, binanceRate } = Astro.props;
       el.resBcv.textContent = isNaN(bcv) ? 'N/D' : `$ ${fmt(capped / bcv)}`;
       el.resBin.textContent = isNaN(bin) ? 'N/D' : `$ ${fmt(capped / bin)}`;
     } else {
-      // compare mode: $ at Binance rate = ? $ at BCV rate, and vice versa
-      // If you have $X at Binance rate (worth X*bin Bs), that's X*bin/bcv dollars at BCV rate
-      // If you have $X at BCV rate (worth X*bcv Bs), that's X*bcv/bin dollars at Binance rate
       if (isNaN(bcv) || isNaN(bin) || bcv === 0 || bin === 0) {
         el.resBcv.textContent = 'N/D';
         el.resBin.textContent = 'N/D';

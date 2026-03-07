@@ -13,7 +13,7 @@ const {
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -21,23 +21,17 @@ const {
     <meta name="theme-color" content="#0f172a" />
     <meta http-equiv="refresh" content="300" />
 
-    <!-- Preconnect to external APIs -->
     <link rel="preconnect" href="https://ve.dolarapi.com" crossorigin />
     <link rel="preconnect" href="https://p2p.binance.com" crossorigin />
 
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
-    <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.webmanifest" />
 
-    <!-- iOS PWA support -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Tasa Dolar" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     
-    <!-- iOS Splash Screens -->
     <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
@@ -47,17 +41,13 @@ const {
     <link rel="apple-touch-startup-image" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" href="/icons/icon-512x512.png" />
 
-    <!-- Android PWA enhancements -->
     <meta name="mobile-web-app-capable" content="yes" />
 
     <title>{title}</title>
   </head>
-  <body
-    class="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center px-4 py-6 sm:py-8 font-sans antialiased"
-  >
+  <body class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
     <slot />
 
-    <!-- Register service worker for PWA with immediate activation -->
     <script is:inline>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () {
