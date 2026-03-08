@@ -1,0 +1,44 @@
+---
+interface Props {
+  activeTab?: "USD" | "EUR" | "BS";
+}
+
+const { activeTab = "USD" } = Astro.props;
+
+const tabs = ["USD", "EUR", "BS"] as const;
+---
+
+<div class="flex rounded-xl bg-card p-1">
+  {
+    tabs.map((tab) => (
+      <button
+        class={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+          activeTab === tab
+            ? "bg-teal text-primary-foreground"
+            : "text-white/60 hover:text-white"
+        }`}
+        data-tab={tab}
+      >
+        {tab}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const buttons = document.querySelectorAll("[data-tab]");
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const tab = button.getAttribute("data-tab");
+      buttons.forEach((btn) => {
+        if (btn.getAttribute("data-tab") === tab) {
+          btn.classList.add("bg-teal", "text-primary-foreground");
+          btn.classList.remove("text-white/60");
+        } else {
+          btn.classList.remove("bg-teal", "text-primary-foreground");
+          btn.classList.add("text-white/60");
+        }
+      });
+    });
+  });
+</script>

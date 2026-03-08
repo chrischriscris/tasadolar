@@ -1,11 +1,37 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { RateItem } from '@/components/RateItem';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import Layout from "../layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import ExchangeGapCard from "@/components/ExchangeGapCard.astro";
+import SectionHeader from "@/components/SectionHeader.astro";
+import RateCard from "@/components/RateCard.astro";
+import CurrencyTabs from "@/components/CurrencyTabs.astro";
+import ConverterInput from "@/components/ConverterInput.astro";
 ---
 
 <Layout>
-    <RateItem />
+  <div class="mx-auto flex min-h-screen max-w-md flex-col">
+    <Header />
+
+    <main class="flex flex-1 flex-col gap-6 px-5 pb-8 pt-4">
+      <ExchangeGapCard
+        percentage={7.42}
+        change={0.12}
+        label="BRECHA CAMBIARIA"
+        description="Diferencia entre BCV y Paralelo"
+      />
+
+      <section class="flex flex-col gap-4">
+        <SectionHeader
+          title="Tasas de Referencia"
+          lastUpdated="Actualizado hace 5m"
+        />
+        <RateCard />
+      </section>
+
+      <section class="mt-auto flex flex-col gap-4">
+        <CurrencyTabs activeTab="USD" />
+        <ConverterInput symbol="$" value="1.00" />
+      </section>
+    </main>
+  </div>
 </Layout>

@@ -1,0 +1,109 @@
+---
+interface Rate {
+  id: string;
+  title: string;
+  value: number;
+  change: number;
+  type: "official" | "average" | "crypto";
+  icon: "bank" | "money" | "bitcoin" | "euro";
+}
+
+interface Props {
+  rates?: Rate[];
+}
+
+const defaultRates: Rate[] = [
+  {
+    id: "1",
+    title: "Dólar BCV",
+    value: 36.45,
+    change: 0.05,
+    type: "official",
+    icon: "bank",
+  },
+  {
+    id: "2",
+    title: "Dólar Paralelo",
+    value: 39.15,
+    change: -0.15,
+    type: "average",
+    icon: "money",
+  },
+  {
+    id: "3",
+    title: "Binance P2P",
+    value: 38.9,
+    change: 0.0,
+    type: "crypto",
+    icon: "bitcoin",
+  },
+  {
+    id: "4",
+    title: "Euro BCV",
+    value: 39.52,
+    change: 0.02,
+    type: "official",
+    icon: "euro",
+  },
+];
+
+const { rates = defaultRates } = Astro.props;
+
+const typeLabels = {
+  official: "OFICIAL",
+  average: "PROMEDIO",
+  crypto: "CRIPTO",
+};
+
+const getIconSvg = (iconType: string): string => {
+  const iconClass = "h-6 w-6 text-white/70";
+
+  switch (iconType) {
+    case "bank":
+      return `<svg class="${iconClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M4 18h16M5 18v-7l8-4 8 4v7M12 7v11"/></svg>`;
+    case "money":
+      return `<svg class="${iconClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 10h.01M18 14h.01"/></svg>`;
+    case "bitcoin":
+      return `<svg class="${iconClass}" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2V7zm0 4h2v6h-2v-6z"/><text x="8" y="16" font-size="10" fill="currentColor">₿</text></svg>`;
+    case "euro":
+      return `<svg class="${iconClass}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M14 8.5c-1.5-1-3.5-.5-4 1.5M8 12h5M8 12c0 2 1.5 3.5 3.5 3.5"/></svg>`;
+    default:
+      return "";
+  }
+};
+---
+
+<div class="flex flex-col gap-3">
+  {
+    rates.map((rate) => {
+      const isPositive = rate.change > 0;
+      const isNeutral = rate.change === 0;
+      const iconSvg = getIconSvg(rate.icon);
+
+      return (
+        <div class="group flex items-center gap-4 rounded-2xl bg-card p-4 transition-colors hover:bg-card/80">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/5">
+            <Fragment set:html={iconSvg} />
+          </div>
+
+          <div class="flex flex-1 flex-col gap-0.5">
+            <span class="text-sm font-medium text-white/80">{rate.title}</span>
+            <span class="text-xl font-bold text-teal">
+              Bs. {rate.value.toFixed(2)}
+            </span>
+          </div>
+
+          <div class="flex flex-col items-end gap-0.5">
+            <span
+              class={`text-sm font-semibold ${isNeutral ? "text-white/60" : isPositive ? "text-teal" : "text-negative"}`}
+            >
+              {isPositive ? "+" : ""}
+              {rate.change.toFixed(2)}%
+            </span>
+            <span class="text-xs text-white/40">{typeLabels[rate.type]}</span>
+          </div>
+        </div>
+      );
+    })
+  }
+</div>
