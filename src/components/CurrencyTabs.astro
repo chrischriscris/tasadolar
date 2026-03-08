@@ -8,11 +8,11 @@ const { activeTab = "USD" } = Astro.props;
 const tabs = ["USD", "EUR", "BS"] as const;
 ---
 
-<div class="flex rounded-xl bg-card p-1">
+<div class="bg-card ml-auto inline-grid grid-cols-3 rounded-xl p-1">
   {
     tabs.map((tab) => (
       <button
-        class={`flex-1 rounded-lg py-2.5 text-sm font-semibold transition-all ${
+        class={`min-w-20 rounded-lg px-6 py-1 text-sm font-semibold transition-all ${
           activeTab === tab
             ? "bg-teal text-primary-foreground"
             : "text-white/60 hover:text-white"

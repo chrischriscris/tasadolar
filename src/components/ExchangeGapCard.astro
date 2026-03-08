@@ -1,4 +1,7 @@
 ---
+import { HugeiconsIcon } from "@hugeicons/react";
+import { InformationCircleIcon } from "@hugeicons/core-free-icons";
+
 interface Props {
   percentage: number;
   change: number;
@@ -14,51 +17,43 @@ const {
 } = Astro.props;
 
 const isPositive = change >= 0;
+const delta = `${isPositive ? "+" : ""}${change.toFixed(2)}%`;
 ---
 
-<div
-  class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal/10 via-teal/5 to-transparent p-6"
->
-  <div class="absolute right-0 top-0 h-full w-1/2 opacity-20">
-    <svg viewBox="0 0 200 100" class="h-full w-full" preserveAspectRatio="none">
-      <path
-        d="M0,80 Q50,60 80,50 T140,30 T200,10"
-        stroke="currentColor"
-        stroke-width="3"
-        fill="none"
-        class="text-teal"></path>
-      <path
-        d="M180,10 L200,10 L200,30"
-        stroke="currentColor"
-        stroke-width="3"
-        fill="none"
-        class="text-teal"></path>
-    </svg>
-  </div>
-
-  <div class="relative z-10">
-    <p class="text-xs font-semibold tracking-wider text-teal/80">{label}</p>
-
-    <div class="mt-2 flex items-baseline gap-3">
-      <span class="text-5xl font-bold tracking-tight text-white"
-        >{percentage.toFixed(2)}%</span
-      >
-      <span
-        class={`flex items-center text-sm font-medium ${isPositive ? "text-teal" : "text-negative"}`}
-      >
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          class={`mr-0.5 ${isPositive ? "" : "rotate-180"}`}
-        >
-          <path d="M7 14l5-5 5 5z" fill="currentColor"></path>
-        </svg>
-        {isPositive ? "+" : ""}{change.toFixed(2)}%
-      </span>
-    </div>
-
-    <p class="mt-2 text-sm text-white/60">{description}</p>
-  </div>
+<div class="mx-auto flex w-fit items-center justify-center gap-2 text-center">
+  <span class="group relative inline-flex">
+    <span tabindex="0" aria-label={description}>
+      <HugeiconsIcon
+        icon={InformationCircleIcon}
+        size={12}
+        color="currentColor"
+        strokeWidth={2}
+        aria-hidden="true"
+      />
+    </span>
+    <span
+      role="tooltip"
+      class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max max-w-52 -translate-x-1/2 rounded-md bg-black/90 px-2 py-1 text-left text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+    >
+      {description}
+    </span>
+  </span>
+  <p class="text-xs font-medium tracking-[0.12em] text-white/45">
+    {label}
+  </p>
+  <span class="group relative inline-flex">
+    <span
+      tabindex="0"
+      aria-label={delta}
+      class={`shrink-0 cursor-help rounded-md px-2 py-1 text-xs font-medium ${isPositive ? "bg-positive/10 text-positive/75" : "bg-negative/10 text-negative/75"}`}
+    >
+      {percentage.toFixed(2)}%
+    </span>
+    <span
+      role="tooltip"
+      class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max -translate-x-1/2 rounded-md bg-black/90 px-2 py-1 text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+    >
+      {delta}
+    </span>
+  </span>
 </div>

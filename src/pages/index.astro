@@ -12,14 +12,7 @@ import ConverterInput from "@/components/ConverterInput.astro";
   <div class="mx-auto flex min-h-screen max-w-md flex-col">
     <Header />
 
-    <main class="flex flex-1 flex-col gap-6 px-5 pb-8 pt-4">
-      <ExchangeGapCard
-        percentage={7.42}
-        change={0.12}
-        label="BRECHA CAMBIARIA"
-        description="Diferencia entre BCV y Paralelo"
-      />
-
+    <main class="flex flex-1 flex-col gap-4 p-4">
       <section class="flex flex-col gap-4">
         <SectionHeader
           title="Tasas de Referencia"
@@ -27,6 +20,13 @@ import ConverterInput from "@/components/ConverterInput.astro";
         />
         <RateCard />
       </section>
+
+      <ExchangeGapCard
+        percentage={47.42}
+        change={-0.12}
+        label="BRECHA CAMBIARIA"
+        description="Diferencia entre BCV y Paralelo"
+      />
 
       <section class="mt-auto flex flex-col gap-4">
         <CurrencyTabs activeTab="USD" />
