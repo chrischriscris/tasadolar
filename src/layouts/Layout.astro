@@ -1,4 +1,5 @@
 ---
+import  SpeedInsights  from "@vercel/speed-insights/astro"
 import '../styles/global.css';
 
 interface Props {
@@ -31,7 +32,6 @@ const {
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Tasa Dolar" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    
     <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
     <link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" href="/icons/icon-512x512.png" />
@@ -47,6 +47,7 @@ const {
   </head>
   <body class="min-h-screen flex flex-col items-center justify-center px-4 py-8">
     <slot />
+    <SpeedInsights />
 
     <script is:inline>
       if ('serviceWorker' in navigator) {
