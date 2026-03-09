@@ -37,3 +37,70 @@ import ConverterInput from "@/components/ConverterInput.astro";
     </main>
   </div>
 </Layout>
+
+<script>
+  const SYMBOLS: Record<string, string> = { USD: "$", EUR: "€", BS: "Bs." };
+
+  let activeTab = "USD";
+
+  const input = document.getElementById("converter-input") as HTMLInputElement;
+  const symbolEl = document.getElementById("converter-symbol")!;
+
+  function getAmount(): number {
+    const v = parseFloat(input.value.replace(",", "."));
+    return isNaN(v) || v < 0 ? 0 : v;
+  }
+
+  function updateRates() {
+    const amount = getAmount();
+    const rows = document.querySelectorAll<HTMLElement>("[data-rate-row]");
+
+    rows.forEach((row) => {
+      const currency = row.getAttribute("data-currency") ?? "USD";
+      const baseRate = parseFloat(row.getAttribute("data-base-rate") ?? "0");
+      const id = row.getAttribute("data-rate-row")!;
+      const valueEl = document.querySelector<HTMLElement>(`[data-rate-value="${id}"]`);
+      if (!valueEl) return;
+
+      if (activeTab === "BS") {
+        // BS tab: input is bolivars, show how much foreign currency you get
+        row.style.display = "";
+        const converted = baseRate > 0 ? amount / baseRate : 0;
+        const currencySymbol = currency === "EUR" ? "€" : "$";
+        valueEl.textContent = `${currencySymbol} ${converted.toFixed(4)}`;
+      } else {
+        // USD or EUR tab: only show rows matching the active currency
+        if (currency !== activeTab) {
+          row.style.display = "none";
+          return;
+        }
+        row.style.display = "";
+        valueEl.textContent = `Bs. ${(amount * baseRate).toFixed(2)}`;
+      }
+    });
+  }
+
+  // Allow only numeric input with one decimal separator
+  input.addEventListener("input", () => {
+    const raw = input.value;
+    // Strip anything that isn't a digit or . or ,
+    let cleaned = raw.replace(/[^0-9.,]/g, "");
+    // Normalise comma to dot, keep only first decimal
+    const parts = cleaned.replace(",", ".").split(".");
+    if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
+    else cleaned = parts.join(".");
+    if (input.value !== cleaned) input.value = cleaned;
+    updateRates();
+  });
+
+  // Tab change event from CurrencyTabs
+  document.addEventListener("tab-change", (e: Event) => {
+    const { tab } = (e as CustomEvent<{ tab: string }>).detail;
+    activeTab = tab;
+    symbolEl.textContent = SYMBOLS[tab] ?? "$";
+    updateRates();
+  });
+
+  // Initial render
+  updateRates();
+</script>
