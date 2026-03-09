@@ -1,10 +1,9 @@
 ---
 interface Props {
   symbol?: string;
-  value?: string;
 }
 
-const { symbol = "$", value = "1.00" } = Astro.props;
+const { symbol = "$" } = Astro.props;
 ---
 
 <div class="bg-card flex items-center gap-4 rounded-2xl p-3">
@@ -13,8 +12,8 @@ const { symbol = "$", value = "1.00" } = Astro.props;
     id="converter-input"
     type="text"
     inputmode="decimal"
-    value={value}
-    placeholder="0"
+    placeholder="1.00"
+    autofocus
     class="flex-1 bg-transparent text-xl font-bold text-white outline-none placeholder:text-white/30"
   />
 </div>

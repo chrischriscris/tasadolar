@@ -32,7 +32,7 @@ import ConverterInput from "@/components/ConverterInput.astro";
 
       <section class="mt-auto flex flex-col gap-4">
         <CurrencyTabs activeTab="USD" />
-        <ConverterInput symbol="$" value="1.00" />
+        <ConverterInput symbol="$" />
       </section>
     </main>
   </div>
@@ -46,9 +46,25 @@ import ConverterInput from "@/components/ConverterInput.astro";
   const input = document.getElementById("converter-input") as HTMLInputElement;
   const symbolEl = document.getElementById("converter-symbol")!;
 
+  // Format a number using dot as thousands separator and comma as decimal separator
+  function formatNumber(value: number, decimals: number): string {
+    return new Intl.NumberFormat("es-VE", {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(value);
+  }
+
+  // Parse a display string (with dot thousands + comma decimal) back to a JS number
+  function parseDisplayValue(str: string): number {
+    // Remove thousand separators (dots) and replace comma decimal with dot
+    const normalized = str.replace(/\./g, "").replace(",", ".");
+    return parseFloat(normalized);
+  }
+
   function getAmount(): number {
-    const v = parseFloat(input.value.replace(",", "."));
-    return isNaN(v) || v < 0 ? 0 : v;
+    const v = parseDisplayValue(input.value);
+    // Empty input falls back to the placeholder value (1)
+    return isNaN(v) || v < 0 ? 1 : v;
   }
 
   function updateRates() {
@@ -67,7 +83,7 @@ import ConverterInput from "@/components/ConverterInput.astro";
         row.style.display = "";
         const converted = baseRate > 0 ? amount / baseRate : 0;
         const currencySymbol = currency === "EUR" ? "€" : "$";
-        valueEl.textContent = `${currencySymbol} ${converted.toFixed(4)}`;
+        valueEl.textContent = `${currencySymbol} ${formatNumber(converted, 4)}`;
       } else {
         // USD or EUR tab: only show rows matching the active currency
         if (currency !== activeTab) {
@@ -75,21 +91,36 @@ import ConverterInput from "@/components/ConverterInput.astro";
           return;
         }
         row.style.display = "";
-        valueEl.textContent = `Bs. ${(amount * baseRate).toFixed(2)}`;
+        valueEl.textContent = `Bs. ${formatNumber(amount * baseRate, 2)}`;
       }
     });
   }
 
-  // Allow only numeric input with one decimal separator
+  // Allow only numeric input with one decimal separator (comma), format with dot thousands
   input.addEventListener("input", () => {
     const raw = input.value;
-    // Strip anything that isn't a digit or . or ,
-    let cleaned = raw.replace(/[^0-9.,]/g, "");
-    // Normalise comma to dot, keep only first decimal
-    const parts = cleaned.replace(",", ".").split(".");
-    if (parts.length > 2) cleaned = parts[0] + "." + parts.slice(1).join("");
-    else cleaned = parts.join(".");
-    if (input.value !== cleaned) input.value = cleaned;
+    // Strip everything except digits and comma (comma = decimal separator)
+    let cleaned = raw.replace(/[^0-9,]/g, "");
+    // Allow only one comma
+    const commaIndex = cleaned.indexOf(",");
+    if (commaIndex !== -1) {
+      cleaned =
+        cleaned.slice(0, commaIndex + 1) +
+        cleaned.slice(commaIndex + 1).replace(/,/g, "");
+    }
+    // Format the integer part with dot thousand separators
+    const [intPart, decPart] = cleaned.split(",");
+    const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const formatted =
+      decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
+
+    // Preserve cursor position relative to end
+    const lengthDiff = formatted.length - raw.length;
+    const selectionEnd = (input.selectionEnd ?? raw.length) + lengthDiff;
+
+    input.value = formatted;
+    input.setSelectionRange(selectionEnd, selectionEnd);
+
     updateRates();
   });
 
@@ -99,6 +130,29 @@ import ConverterInput from "@/components/ConverterInput.astro";
     activeTab = tab;
     symbolEl.textContent = SYMBOLS[tab] ?? "$";
     updateRates();
+  });
+
+  input.addEventListener("focus", () => {
+    input.dataset.prev = input.value;
+    input.value = "";
+    updateRates();
+  });
+
+  input.addEventListener("blur", () => {
+    if (input.value === "") {
+      input.value = input.dataset.prev ?? "";
+      updateRates();
+    } else {
+      // Re-format on blur to ensure proper display (e.g. add missing thousand dots)
+      const v = getAmount();
+      if (!isNaN(v) && v >= 0) {
+        const raw = input.value;
+        const hasDecimal = raw.includes(",");
+        const decimalPlaces = hasDecimal ? raw.split(",")[1].length : 0;
+        input.value = formatNumber(v, decimalPlaces);
+      }
+      updateRates();
+    }
   });
 
   // Initial render

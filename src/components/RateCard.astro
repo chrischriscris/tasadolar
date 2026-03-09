@@ -16,7 +16,7 @@ const defaultRates: Rate[] = [
   {
     id: "bcv-usd",
     title: "Tasa BCV",
-    value: 36.45,
+    value: 433.17,
     change: 0.05,
     icon: "bcv",
     currency: "USD",
@@ -24,7 +24,7 @@ const defaultRates: Rate[] = [
   {
     id: "binance-usd",
     title: "Tasa Binance (USDT)",
-    value: 39.15,
+    value: 613.01,
     change: -0.15,
     icon: "binance",
     currency: "USD",
@@ -32,55 +32,7 @@ const defaultRates: Rate[] = [
   {
     id: "bcv-eur",
     title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 38.9,
+    value: 501.72,
     change: 0.0,
     icon: "eu",
     currency: "EUR",
@@ -88,6 +40,12 @@ const defaultRates: Rate[] = [
 ];
 
 const { rates = defaultRates } = Astro.props;
+
+const formatNumber = (value: number, decimals: number): string =>
+  new Intl.NumberFormat("es-VE", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
 
 const getIconUrl = (iconType: string): string => {
   switch (iconType) {
@@ -130,7 +88,7 @@ const getIconUrl = (iconType: string): string => {
           <div class="flex flex-1 flex-col gap-0.5">
             <span class="text-xs font-medium text-white/80">{rate.title}</span>
             <span class="text-teal text-xl font-bold" data-rate-value={rate.id}>
-              Bs. {rate.value.toFixed(2)}
+              Bs. {formatNumber(rate.value, 2)}
             </span>
           </div>
 
