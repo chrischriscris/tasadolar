@@ -39,6 +39,7 @@ const tabs = ["USD", "EUR", "BS"] as const;
           btn.classList.add("text-white/60");
         }
       });
+      document.dispatchEvent(new CustomEvent("tab-change", { detail: { tab } }));
     });
   });
 </script>

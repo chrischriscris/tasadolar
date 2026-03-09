@@ -9,16 +9,18 @@ import ConverterInput from "@/components/ConverterInput.astro";
 ---
 
 <Layout>
-  <div class="mx-auto flex min-h-screen max-w-md flex-col">
+  <div class="mx-auto flex h-screen max-w-md flex-col">
     <Header />
 
-    <main class="flex flex-1 flex-col gap-4 p-4">
-      <section class="flex flex-col gap-4">
+    <main class="flex min-h-0 flex-1 flex-col gap-4 p-4">
+      <section class="flex min-h-0 flex-col gap-4">
         <SectionHeader
           title="Tasas de Referencia"
           lastUpdated="Actualizado hace 5m"
         />
-        <RateCard />
+        <div class="overflow-y-auto">
+          <RateCard />
+        </div>
       </section>
 
       <ExchangeGapCard
