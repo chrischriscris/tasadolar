@@ -1,0 +1,92 @@
+---
+interface Rate {
+  id: string;
+  title: string;
+  value: number;
+  change: number;
+  icon: "bcv" | "us" | "binance" | "eu";
+  currency: "USD" | "EUR" | "BS";
+  displayUnit: "BS" | "USD";
+}
+
+interface Props {
+  rates: Rate[];
+}
+
+// No more hardcoded defaults – rates are always passed as props from index.astro
+// which gets them from src/lib/rates.ts → fetchAllRates()
+const { rates } = Astro.props;
+
+const formatNumber = (value: number, decimals: number): string =>
+  new Intl.NumberFormat("es-VE", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(value);
+
+const getIconUrl = (iconType: string): string => {
+  switch (iconType) {
+    case "bcv":
+      return "https://flagcdn.com/w80/ve.png";
+    case "us":
+      return "https://flagcdn.com/w80/us.png";
+    case "binance":
+      return "https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png";
+    case "eu":
+      return "https://flagcdn.com/w80/eu.png";
+    default:
+      return "";
+  }
+};
+---
+
+<div id="rate-card" class="flex flex-col gap-3">
+  {
+    rates.map((rate) => {
+      const isPositive = rate.change > 0;
+      const isNeutral = rate.change === 0;
+      const iconUrl = getIconUrl(rate.icon);
+
+      return (
+        <div
+          class="group bg-card hover:bg-card/80 flex items-center gap-4 rounded-2xl p-3 transition-colors"
+          data-rate-row={rate.id}
+          data-currency={rate.currency}
+          data-base-rate={rate.value}
+          data-display-unit={rate.displayUnit}
+        >
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center">
+            <img
+              src={iconUrl}
+              alt={rate.icon}
+              class="h-8 w-8 rounded-xl object-cover"
+            />
+          </div>
+
+          <div class="flex flex-1 flex-col gap-0.5 min-w-0">
+            <span class="text-xs font-medium text-white/80">{rate.title}</span>
+              <span
+                class="text-teal text-xl font-bold truncate block"
+                data-rate-value={rate.id}
+                title={`${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
+                  rate.value,
+                  rate.displayUnit === "BS" ? 2 : 4,
+                )}`}
+              >
+                {rate.displayUnit === "BS" ? "Bs." : "$"}{" "}
+                {formatNumber(rate.value, rate.displayUnit === "BS" ? 2 : 4)}
+              </span>
+          </div>
+
+          <div class="flex flex-col items-end gap-0.5">
+            <span
+              class={`text-sm font-semibold ${isNeutral ? "text-white/60" : isPositive ? "text-teal" : "text-negative"}`}
+            >
+              {isPositive ? "+" : ""}
+              {rate.change.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+      );
+    })
+  }
+</div>

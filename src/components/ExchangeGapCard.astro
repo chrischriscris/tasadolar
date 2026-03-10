@@ -1,0 +1,56 @@
+---
+import { Info } from "lucide-react";
+
+interface Props {
+  percentage: number;
+  change: number;
+  label?: string;
+  description?: string;
+}
+
+const {
+  percentage,
+  change,
+  label = "BRECHA CAMBIARIA",
+  description = "Diferencia entre BCV y Paralelo",
+} = Astro.props;
+
+const isPositive = change >= 0;
+const delta = `${isPositive ? "+" : ""}${change.toFixed(2)}%`;
+---
+
+<div class="mx-auto flex w-fit items-center justify-center gap-2 text-center">
+  <span class="group relative inline-flex">
+    <span tabindex="0" aria-label={description}>
+      <Info
+        size={12}
+        strokeWidth={2}
+        aria-hidden="true"
+      />
+    </span>
+    <span
+      role="tooltip"
+      class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max max-w-52 -translate-x-1/2 rounded-md bg-black/90 px-2 py-1 text-left text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+    >
+      {description}
+    </span>
+  </span>
+  <p class="text-xs font-medium tracking-[0.12em] text-white/45">
+    {label}
+  </p>
+  <span class="group relative inline-flex">
+    <span
+      tabindex="0"
+      aria-label={delta}
+      class={`shrink-0 cursor-help rounded-md px-2 py-1 text-xs font-medium ${isPositive ? "bg-positive/10 text-positive/75" : "bg-negative/10 text-negative/75"}`}
+    >
+      {percentage.toFixed(2)}%
+    </span>
+    <span
+      role="tooltip"
+      class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-1/2 z-10 w-max -translate-x-1/2 rounded-md bg-black/90 px-2 py-1 text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 group-focus-within:opacity-100 group-hover:opacity-100"
+    >
+      {delta}
+    </span>
+  </span>
+</div>
