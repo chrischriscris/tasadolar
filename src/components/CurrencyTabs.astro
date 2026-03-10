@@ -1,0 +1,45 @@
+---
+interface Props {
+  activeTab?: "USD" | "EUR" | "BS";
+}
+
+const { activeTab = "USD" } = Astro.props;
+
+const tabs = ["USD", "EUR", "BS"] as const;
+---
+
+<div class="bg-card ml-auto inline-grid grid-cols-3 rounded-xl p-1">
+  {
+    tabs.map((tab) => (
+      <button
+        class={`min-w-20 rounded-lg px-6 py-1 text-sm font-semibold transition-all ${
+          activeTab === tab
+            ? "bg-teal text-primary-foreground"
+            : "text-white/60 hover:text-white"
+        }`}
+        data-tab={tab}
+      >
+        {tab}
+      </button>
+    ))
+  }
+</div>
+
+<script>
+  const buttons = document.querySelectorAll("[data-tab]");
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const tab = button.getAttribute("data-tab");
+      buttons.forEach((btn) => {
+        if (btn.getAttribute("data-tab") === tab) {
+          btn.classList.add("bg-teal", "text-primary-foreground");
+          btn.classList.remove("text-white/60");
+        } else {
+          btn.classList.remove("bg-teal", "text-primary-foreground");
+          btn.classList.add("text-white/60");
+        }
+      });
+      document.dispatchEvent(new CustomEvent("tab-change", { detail: { tab } }));
+    });
+  });
+</script>

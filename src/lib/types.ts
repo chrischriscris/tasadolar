@@ -1,3 +1,8 @@
+// ---------------------------------------------------------------------------
+// Shared types for exchange rate fetching
+// ---------------------------------------------------------------------------
+
+/** Successful rate fetch */
 export interface RateResult {
   price: number;
   updatedAt: string;
@@ -5,6 +10,7 @@ export interface RateResult {
   error?: undefined;
 }
 
+/** Failed rate fetch */
 export interface RateError {
   price?: undefined;
   updatedAt?: undefined;
@@ -12,7 +18,22 @@ export interface RateError {
   error: string;
 }
 
+/** Discriminated union – check `.error` to narrow */
 export type Rate = RateResult | RateError;
+
+// -- DolarApi.com response shape (ve.dolarapi.com) --------------------------
+
+export interface DolarApiResponse {
+  fuente: string;
+  nombre: string;
+  moneda?: string;
+  compra: number | null;
+  venta: number | null;
+  promedio: number;
+  fechaActualizacion: string;
+}
+
+// -- Binance P2P response shapes --------------------------------------------
 
 export interface BinanceP2PAd {
   adv: {
@@ -33,13 +54,4 @@ export interface BinanceP2PResponse {
   data: BinanceP2PAd[];
   total: number;
   success: boolean;
-}
-
-export interface DolarApiResponse {
-  fuente: string;
-  nombre: string;
-  compra: number | null;
-  venta: number | null;
-  promedio: number;
-  fechaActualizacion: string;
 }

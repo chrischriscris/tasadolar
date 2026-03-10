@@ -1,0 +1,25 @@
+---
+interface Props {
+  title?: string;
+}
+
+const { title = "TasaDolar" } = Astro.props;
+---
+
+<header
+  class="sticky top-0 z-50 flex h-16 items-center justify-between px-5 backdrop-blur-xl"
+>
+  <div class="flex items-center gap-3">
+    <svg
+      width="40"
+      height="40"
+      viewBox="0 0 36 36"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect width="36" height="36" rx="8" fill="#0f172a"/>
+      <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="20" fill="#34d399" font-family="system-ui" font-weight="bold">$</text>
+    </svg>
+    <h1 class="text-xl font-bold tracking-tight text-white">{title}</h1>
+  </div>
+</header>
