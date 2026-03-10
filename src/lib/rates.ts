@@ -60,6 +60,12 @@ export interface AllRates {
   };
 }
 
+function roundUp(value: number, decimals = 2): number {
+  if (!isFinite(value)) return 0;
+  const factor = 10 ** decimals;
+  return Math.ceil(value * factor) / factor;
+}
+
 /** Format an ISO date into a relative "Actualizado hace Xm" string */
 function formatLastUpdated(dates: (string | undefined)[]): string {
   const validDates = dates
@@ -99,13 +105,17 @@ export async function fetchAllRates(): Promise<AllRates> {
   ]);
 
   // -- Extract prices (0 if failed) -----------------------------------------
-  const bcvUsdPrice = bcvUsd.price ?? 0;
-  const binancePrice = binance.price ?? 0;
-  const bcvEurPrice = bcvEur.price ?? 0;
+  const bcvUsdPrice = roundUp(bcvUsd.price ?? 0);
+  const binancePrice = roundUp(binance.price ?? 0);
+  const bcvEurPrice = roundUp(bcvEur.price ?? 0);
   const bcvToUsdtRate =
-    bcvUsdPrice > 0 && binancePrice > 0 ? bcvUsdPrice / binancePrice : 0;
+    bcvUsdPrice > 0 && binancePrice > 0
+      ? roundUp(bcvUsdPrice / binancePrice)
+      : 0;
   const usdtToBcvRate =
-    bcvUsdPrice > 0 && binancePrice > 0 ? binancePrice / bcvUsdPrice : 0;
+    bcvUsdPrice > 0 && binancePrice > 0
+      ? roundUp(binancePrice / bcvUsdPrice)
+      : 0;
 
   // -- Build rate cards for RateCard.astro -----------------------------------
   // NOTE: `change` is hardcoded to 0 for now. To implement daily change %,
@@ -115,7 +125,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-usd",
       title: "Tasa BCV",
-      value: Number(bcvUsdPrice.toFixed(2)),
+      value: bcvUsdPrice,
       change: 0, // TODO: track daily change
       icon: "bcv",
       currency: "USD",
@@ -124,7 +134,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "binance-usd",
       title: "Tasa Binance (USDT)",
-      value: Number(binancePrice.toFixed(2)),
+      value: binancePrice,
       change: 0, // TODO: track daily change
       icon: "binance",
       currency: "USD",
@@ -133,7 +143,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-to-usdt",
       title: "BCV -> USDT",
-      value: Number(bcvToUsdtRate.toFixed(4)),
+      value: bcvToUsdtRate,
       change: 0,
       icon: "bcv",
       currency: "USD",
@@ -142,7 +152,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "usdt-to-bcv",
       title: "USDT -> BCV",
-      value: Number(usdtToBcvRate.toFixed(4)),
+      value: usdtToBcvRate,
       change: 0,
       icon: "binance",
       currency: "USD",
@@ -151,7 +161,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-eur",
       title: "Tasa Euro BCV",
-      value: Number(bcvEurPrice.toFixed(2)),
+      value: bcvEurPrice,
       change: 0, // TODO: track daily change
       icon: "eu",
       currency: "EUR",

@@ -16,6 +16,7 @@ interface Props {
 // No more hardcoded defaults – rates are always passed as props from index.astro
 // which gets them from src/lib/rates.ts → fetchAllRates()
 const { rates } = Astro.props;
+const RATE_DECIMALS = 2;
 
 const formatNumber = (value: number, decimals: number): string =>
   new Intl.NumberFormat("es-VE", {
@@ -69,11 +70,11 @@ const getIconUrl = (iconType: string): string => {
                 data-rate-value={rate.id}
                 title={`${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
                   rate.value,
-                  rate.displayUnit === "BS" ? 2 : 4,
+                  RATE_DECIMALS,
                 )}`}
               >
                 {rate.displayUnit === "BS" ? "Bs." : "$"}{" "}
-                {formatNumber(rate.value, rate.displayUnit === "BS" ? 2 : 4)}
+                {formatNumber(rate.value, RATE_DECIMALS)}
               </span>
           </div>
 

@@ -45,12 +45,19 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
 
 <script>
   const SYMBOLS: Record<string, string> = { USD: "$", EUR: "€", BS: "Bs." };
+  const RATE_DECIMALS = 2;
 
   let activeTab = "USD";
 
   const input = document.getElementById("converter-input") as HTMLInputElement;
   const symbolEl = document.getElementById("converter-symbol")!;
   const resetButtons = document.querySelectorAll<HTMLButtonElement>("[data-converter-reset]");
+
+  function roundUp(value: number, decimals = RATE_DECIMALS): number {
+    if (!isFinite(value)) return 0;
+    const factor = 10 ** decimals;
+    return Math.ceil(value * factor) / factor;
+  }
 
   // Format a number using dot as thousands separator and comma as decimal separator
   function formatNumber(value: number, decimals: number): string {
@@ -79,7 +86,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
 
     rows.forEach((row) => {
       const currency = row.getAttribute("data-currency") ?? "USD";
-      const baseRate = parseFloat(row.getAttribute("data-base-rate") ?? "0");
+      const baseRate = roundUp(
+        parseFloat(row.getAttribute("data-base-rate") ?? "0"),
+      );
       const displayUnit = row.getAttribute("data-display-unit") ?? "BS";
       const id = row.getAttribute("data-rate-row")!;
       const valueEl = document.querySelector<HTMLElement>(`[data-rate-value="${id}"]`);
@@ -88,9 +97,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       if (activeTab === "BS") {
         // BS tab: input is bolivars, show how much foreign currency you get
         row.style.display = "";
-        const converted = baseRate > 0 ? amount / baseRate : 0;
+        const converted = baseRate > 0 ? roundUp(amount / baseRate) : 0;
         const currencySymbol = currency === "EUR" ? "€" : "$";
-        const text = `${currencySymbol} ${formatNumber(converted, 4)}`;
+        const text = `${currencySymbol} ${formatNumber(converted, RATE_DECIMALS)}`;
         valueEl.textContent = text;
         valueEl.title = text;
       } else {
@@ -102,13 +111,13 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
         row.style.display = "";
 
         if (displayUnit === "USD") {
-          const text = `$ ${formatNumber(amount * baseRate, 4)}`;
+          const text = `$ ${formatNumber(roundUp(amount * baseRate), RATE_DECIMALS)}`;
           valueEl.textContent = text;
           valueEl.title = text;
           return;
         }
 
-        const text = `Bs. ${formatNumber(amount * baseRate, 2)}`;
+        const text = `Bs. ${formatNumber(roundUp(amount * baseRate), RATE_DECIMALS)}`;
         valueEl.textContent = text;
         valueEl.title = text;
       }
@@ -128,7 +137,8 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
         cleaned.slice(commaIndex + 1).replace(/,/g, "");
     }
     // Format the integer part with dot thousand separators
-    const [intPart, decPart] = cleaned.split(",");
+    const [intPart, decPartRaw] = cleaned.split(",");
+    const decPart = decPartRaw ? decPartRaw.slice(0, RATE_DECIMALS) : undefined;
     const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     const formatted =
       decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
@@ -162,7 +172,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
     if (!isNaN(v) && v >= 0) {
       const raw = input.value;
       const hasDecimal = raw.includes(",");
-      const decimalPlaces = hasDecimal ? raw.split(",")[1].length : 0;
+      const decimalPlaces = hasDecimal
+        ? Math.min(raw.split(",")[1].length, RATE_DECIMALS)
+        : 0;
       input.value = formatNumber(v, decimalPlaces);
     }
     updateRates();
