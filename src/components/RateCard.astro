@@ -9,37 +9,12 @@ interface Rate {
 }
 
 interface Props {
-  rates?: Rate[];
+  rates: Rate[];
 }
 
-const defaultRates: Rate[] = [
-  {
-    id: "bcv-usd",
-    title: "Tasa BCV",
-    value: 433.17,
-    change: 0.05,
-    icon: "bcv",
-    currency: "USD",
-  },
-  {
-    id: "binance-usd",
-    title: "Tasa Binance (USDT)",
-    value: 613.01,
-    change: -0.15,
-    icon: "binance",
-    currency: "USD",
-  },
-  {
-    id: "bcv-eur",
-    title: "Tasa Euro BCV",
-    value: 501.72,
-    change: 0.0,
-    icon: "eu",
-    currency: "EUR",
-  },
-];
-
-const { rates = defaultRates } = Astro.props;
+// No more hardcoded defaults – rates are always passed as props from index.astro
+// which gets them from src/lib/rates.ts → fetchAllRates()
+const { rates } = Astro.props;
 
 const formatNumber = (value: number, decimals: number): string =>
   new Intl.NumberFormat("es-VE", {
