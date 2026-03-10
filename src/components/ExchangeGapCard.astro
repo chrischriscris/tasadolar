@@ -1,6 +1,5 @@
 ---
-import { HugeiconsIcon } from "@hugeicons/react";
-import { InformationCircleIcon } from "@hugeicons/core-free-icons";
+import { Info } from "lucide-react";
 
 interface Props {
   percentage: number;
@@ -23,10 +22,8 @@ const delta = `${isPositive ? "+" : ""}${change.toFixed(2)}%`;
 <div class="mx-auto flex w-fit items-center justify-center gap-2 text-center">
   <span class="group relative inline-flex">
     <span tabindex="0" aria-label={description}>
-      <HugeiconsIcon
-        icon={InformationCircleIcon}
+      <Info
         size={12}
-        color="currentColor"
         strokeWidth={2}
         aria-hidden="true"
       />
