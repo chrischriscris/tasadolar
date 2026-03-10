@@ -45,6 +45,7 @@ import ConverterInput from "@/components/ConverterInput.astro";
 
   const input = document.getElementById("converter-input") as HTMLInputElement;
   const symbolEl = document.getElementById("converter-symbol")!;
+  const resetButtons = document.querySelectorAll<HTMLButtonElement>("[data-converter-reset]");
 
   // Format a number using dot as thousands separator and comma as decimal separator
   function formatNumber(value: number, decimals: number): string {
@@ -132,27 +133,29 @@ import ConverterInput from "@/components/ConverterInput.astro";
     updateRates();
   });
 
-  input.addEventListener("focus", () => {
-    input.dataset.prev = input.value;
-    input.value = "";
+  input.addEventListener("blur", () => {
+    if (input.value === "") {
+      updateRates();
+      return;
+    }
+
+    // Re-format on blur to ensure proper display (e.g. add missing thousand dots)
+    const v = getAmount();
+    if (!isNaN(v) && v >= 0) {
+      const raw = input.value;
+      const hasDecimal = raw.includes(",");
+      const decimalPlaces = hasDecimal ? raw.split(",")[1].length : 0;
+      input.value = formatNumber(v, decimalPlaces);
+    }
     updateRates();
   });
 
-  input.addEventListener("blur", () => {
-    if (input.value === "") {
-      input.value = input.dataset.prev ?? "";
+  resetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      input.value = "";
+      input.focus();
       updateRates();
-    } else {
-      // Re-format on blur to ensure proper display (e.g. add missing thousand dots)
-      const v = getAmount();
-      if (!isNaN(v) && v >= 0) {
-        const raw = input.value;
-        const hasDecimal = raw.includes(",");
-        const decimalPlaces = hasDecimal ? raw.split(",")[1].length : 0;
-        input.value = formatNumber(v, decimalPlaces);
-      }
-      updateRates();
-    }
+    });
   });
 
   // Initial render
