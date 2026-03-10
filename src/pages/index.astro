@@ -84,7 +84,9 @@ import ConverterInput from "@/components/ConverterInput.astro";
         row.style.display = "";
         const converted = baseRate > 0 ? amount / baseRate : 0;
         const currencySymbol = currency === "EUR" ? "€" : "$";
-        valueEl.textContent = `${currencySymbol} ${formatNumber(converted, 4)}`;
+        const text = `${currencySymbol} ${formatNumber(converted, 4)}`;
+        valueEl.textContent = text;
+        valueEl.title = text;
       } else {
         // USD or EUR tab: only show rows matching the active currency
         if (currency !== activeTab) {
@@ -92,7 +94,9 @@ import ConverterInput from "@/components/ConverterInput.astro";
           return;
         }
         row.style.display = "";
-        valueEl.textContent = `Bs. ${formatNumber(amount * baseRate, 2)}`;
+        const text = `Bs. ${formatNumber(amount * baseRate, 2)}`;
+        valueEl.textContent = text;
+        valueEl.title = text;
       }
     });
   }

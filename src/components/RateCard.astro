@@ -85,9 +85,13 @@ const getIconUrl = (iconType: string): string => {
             />
           </div>
 
-          <div class="flex flex-1 flex-col gap-0.5">
+          <div class="flex flex-1 flex-col gap-0.5 min-w-0">
             <span class="text-xs font-medium text-white/80">{rate.title}</span>
-            <span class="text-teal text-xl font-bold" data-rate-value={rate.id}>
+            <span
+              class="text-teal text-xl font-bold truncate block"
+              data-rate-value={rate.id}
+              title={`Bs. ${formatNumber(rate.value, 2)}`}
+            >
               Bs. {formatNumber(rate.value, 2)}
             </span>
           </div>
