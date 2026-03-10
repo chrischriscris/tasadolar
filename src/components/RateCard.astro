@@ -6,6 +6,7 @@ interface Rate {
   change: number;
   icon: "bcv" | "us" | "binance" | "eu";
   currency: "USD" | "EUR" | "BS";
+  displayUnit: "BS" | "USD";
 }
 
 interface Props {
@@ -51,6 +52,7 @@ const getIconUrl = (iconType: string): string => {
           data-rate-row={rate.id}
           data-currency={rate.currency}
           data-base-rate={rate.value}
+          data-display-unit={rate.displayUnit}
         >
           <div class="flex h-10 w-10 shrink-0 items-center justify-center">
             <img
@@ -62,13 +64,17 @@ const getIconUrl = (iconType: string): string => {
 
           <div class="flex flex-1 flex-col gap-0.5 min-w-0">
             <span class="text-xs font-medium text-white/80">{rate.title}</span>
-            <span
-              class="text-teal text-xl font-bold truncate block"
-              data-rate-value={rate.id}
-              title={`Bs. ${formatNumber(rate.value, 2)}`}
-            >
-              Bs. {formatNumber(rate.value, 2)}
-            </span>
+              <span
+                class="text-teal text-xl font-bold truncate block"
+                data-rate-value={rate.id}
+                title={`${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
+                  rate.value,
+                  rate.displayUnit === "BS" ? 2 : 4,
+                )}`}
+              >
+                {rate.displayUnit === "BS" ? "Bs." : "$"}{" "}
+                {formatNumber(rate.value, rate.displayUnit === "BS" ? 2 : 4)}
+              </span>
           </div>
 
           <div class="flex flex-col items-end gap-0.5">

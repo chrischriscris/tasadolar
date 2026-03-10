@@ -39,6 +39,7 @@ export interface RateCardData {
   change: number; // TODO: implement daily change tracking (needs historical data)
   icon: "bcv" | "us" | "binance" | "eu";
   currency: "USD" | "EUR" | "BS";
+  displayUnit: "BS" | "USD";
 }
 
 export interface AllRates {
@@ -101,6 +102,10 @@ export async function fetchAllRates(): Promise<AllRates> {
   const bcvUsdPrice = bcvUsd.price ?? 0;
   const binancePrice = binance.price ?? 0;
   const bcvEurPrice = bcvEur.price ?? 0;
+  const bcvToUsdtRate =
+    bcvUsdPrice > 0 && binancePrice > 0 ? bcvUsdPrice / binancePrice : 0;
+  const usdtToBcvRate =
+    bcvUsdPrice > 0 && binancePrice > 0 ? binancePrice / bcvUsdPrice : 0;
 
   // -- Build rate cards for RateCard.astro -----------------------------------
   // NOTE: `change` is hardcoded to 0 for now. To implement daily change %,
@@ -114,6 +119,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       change: 0, // TODO: track daily change
       icon: "bcv",
       currency: "USD",
+      displayUnit: "BS",
     },
     {
       id: "binance-usd",
@@ -122,6 +128,25 @@ export async function fetchAllRates(): Promise<AllRates> {
       change: 0, // TODO: track daily change
       icon: "binance",
       currency: "USD",
+      displayUnit: "BS",
+    },
+    {
+      id: "bcv-to-usdt",
+      title: "BCV -> USDT",
+      value: Number(bcvToUsdtRate.toFixed(4)),
+      change: 0,
+      icon: "bcv",
+      currency: "USD",
+      displayUnit: "USD",
+    },
+    {
+      id: "usdt-to-bcv",
+      title: "USDT -> BCV",
+      value: Number(usdtToBcvRate.toFixed(4)),
+      change: 0,
+      icon: "binance",
+      currency: "USD",
+      displayUnit: "USD",
     },
     {
       id: "bcv-eur",
@@ -130,6 +155,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       change: 0, // TODO: track daily change
       icon: "eu",
       currency: "EUR",
+      displayUnit: "BS",
     },
   ];
 

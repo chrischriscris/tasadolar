@@ -80,6 +80,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
     rows.forEach((row) => {
       const currency = row.getAttribute("data-currency") ?? "USD";
       const baseRate = parseFloat(row.getAttribute("data-base-rate") ?? "0");
+      const displayUnit = row.getAttribute("data-display-unit") ?? "BS";
       const id = row.getAttribute("data-rate-row")!;
       const valueEl = document.querySelector<HTMLElement>(`[data-rate-value="${id}"]`);
       if (!valueEl) return;
@@ -99,6 +100,14 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
           return;
         }
         row.style.display = "";
+
+        if (displayUnit === "USD") {
+          const text = `$ ${formatNumber(amount * baseRate, 4)}`;
+          valueEl.textContent = text;
+          valueEl.title = text;
+          return;
+        }
+
         const text = `Bs. ${formatNumber(amount * baseRate, 2)}`;
         valueEl.textContent = text;
         valueEl.title = text;
