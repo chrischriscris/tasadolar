@@ -15,7 +15,8 @@ pre-commit:
         done < <(git diff --cached --name-only --diff-filter=ACMR -z)
 
         if [ ${#files[@]} -gt 0 ]; then
-          npx prettier --check "${files[@]}"
+          npx prettier --write "${files[@]}"
+          git add -- "${files[@]}"
         fi
     build:
       run: npm run build

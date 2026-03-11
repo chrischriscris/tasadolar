@@ -14,28 +14,27 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
 ---
 
 <Layout>
-  <div class="mx-auto flex min-h-[100dvh] min-h-screen max-w-md flex-col">
+  <div class="mx-auto flex h-full min-h-0 max-w-md flex-col overflow-hidden">
     <Header />
 
-    <main class="flex min-h-0 flex-1 flex-col gap-4 p-4">
-      <section class="flex min-h-0 flex-col gap-4">
+    <main class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
+      <section class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
         <SectionHeader
           title="Tasas de Referencia"
           lastUpdated={lastUpdatedText}
         />
-        <div class="overflow-y-auto">
+        <div class="min-h-0 flex-1 overflow-y-auto">
           <RateCard rates={cards} />
         </div>
       </section>
 
-      <ExchangeGapCard
-        percentage={brechaPercentage}
-        change={0}
-        label="BRECHA CAMBIARIA"
-        description="Diferencia entre BCV y Paralelo"
-      />
-
       <section class="mt-auto flex flex-col gap-4">
+        <ExchangeGapCard
+          percentage={brechaPercentage}
+          change={0}
+          label="BRECHA CAMBIARIA"
+          description="Diferencia entre BCV y Paralelo"
+        />
         <CurrencyTabs activeTab="USD" />
         <ConverterInput symbol="$" />
       </section>
