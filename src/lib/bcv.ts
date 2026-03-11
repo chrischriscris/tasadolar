@@ -40,19 +40,31 @@ function pickByFuente(
 
 /** Fetch the official BCV USD rate */
 export async function fetchBcvUsd(): Promise<Rate> {
+  return fetchDolarByFuente("oficial", "BCV");
+}
+
+/** Fetch the paralelo USD rate */
+export async function fetchParaleloUsd(): Promise<Rate> {
+  return fetchDolarByFuente("paralelo", "Paralelo");
+}
+
+async function fetchDolarByFuente(
+  fuente: "oficial" | "paralelo",
+  source: string,
+): Promise<Rate> {
   try {
     const data = await fetchWithTimeout(DOLARES_URL);
-    const oficial = pickByFuente(data, "oficial");
-    if (!oficial) throw new Error("No 'oficial' entry in dolares response");
+    const result = pickByFuente(data, fuente);
+    if (!result) throw new Error(`No '${fuente}' entry in dolares response`);
     return {
-      price: oficial.promedio,
-      updatedAt: oficial.fechaActualizacion,
-      source: "BCV",
+      price: result.promedio,
+      updatedAt: result.fechaActualizacion,
+      source,
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error(`[BCV USD] Failed: ${message}`);
-    return { source: "BCV", error: message };
+    console.error(`[${source}] Failed: ${message}`);
+    return { source, error: message };
   }
 }
 

@@ -31,7 +31,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       <section class="mt-auto flex flex-col gap-4">
         <ExchangeGapCard
           percentage={brechaPercentage}
-          change={0}
+          change={brechaPercentage}
           label="BRECHA CAMBIARIA"
           description="Diferencia entre BCV y Paralelo"
         />
@@ -95,6 +95,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       const valueEl = document.querySelector<HTMLElement>(
         `[data-rate-value="${id}"]`,
       );
+      const tooltipEl = document.querySelector<HTMLElement>(
+        `[data-rate-tooltip="${id}"]`,
+      );
       if (!valueEl) return;
 
       if (activeTab === "BS") {
@@ -105,6 +108,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
         const text = `${currencySymbol} ${formatNumber(converted, RATE_DECIMALS)}`;
         valueEl.textContent = text;
         valueEl.title = text;
+        if (tooltipEl) tooltipEl.textContent = text;
       } else {
         // USD or EUR tab: only show rows matching the active currency
         if (currency !== activeTab) {
@@ -117,12 +121,14 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
           const text = `$ ${formatNumber(roundUp(amount * baseRate), RATE_DECIMALS)}`;
           valueEl.textContent = text;
           valueEl.title = text;
+          if (tooltipEl) tooltipEl.textContent = text;
           return;
         }
 
         const text = `Bs. ${formatNumber(roundUp(amount * baseRate), RATE_DECIMALS)}`;
         valueEl.textContent = text;
         valueEl.title = text;
+        if (tooltipEl) tooltipEl.textContent = text;
       }
     });
   }
