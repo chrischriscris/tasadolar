@@ -1,46 +1,15 @@
-# Astro Starter Kit: Basics
+# TasaDolar
 
-```sh
-npm create astro@latest -- --template basics
-```
+Venezuelan exchange rate tracker — BCV official, Binance P2P parallel, and EUR rates with a currency converter.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Built with [Astro](https://astro.build), deployed on [Vercel](https://vercel.com).
 
-## 🚀 Project Structure
+## Commands
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
-
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+| Command             | Action                                       |
+| :------------------ | :------------------------------------------- |
+| `npm install`       | Install dependencies                         |
+| `npm run dev`       | Start dev server at `localhost:4321`         |
+| `npm run build`     | Build production site to `./dist/`           |
+| `npm run preview`   | Preview build locally                        |
+| `npm run astro ...` | Run Astro CLI commands (`add`, `check`, etc) |

@@ -14,7 +14,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
 ---
 
 <Layout>
-  <div class="mx-auto flex min-h-screen min-h-[100dvh] max-w-md flex-col">
+  <div class="mx-auto flex min-h-[100dvh] min-h-screen max-w-md flex-col">
     <Header />
 
     <main class="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -51,7 +51,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
 
   const input = document.getElementById("converter-input") as HTMLInputElement;
   const symbolEl = document.getElementById("converter-symbol")!;
-  const resetButtons = document.querySelectorAll<HTMLButtonElement>("[data-converter-reset]");
+  const resetButtons = document.querySelectorAll<HTMLButtonElement>(
+    "[data-converter-reset]",
+  );
 
   function roundUp(value: number, decimals = RATE_DECIMALS): number {
     if (!isFinite(value)) return 0;
@@ -91,7 +93,9 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       );
       const displayUnit = row.getAttribute("data-display-unit") ?? "BS";
       const id = row.getAttribute("data-rate-row")!;
-      const valueEl = document.querySelector<HTMLElement>(`[data-rate-value="${id}"]`);
+      const valueEl = document.querySelector<HTMLElement>(
+        `[data-rate-value="${id}"]`,
+      );
       if (!valueEl) return;
 
       if (activeTab === "BS") {

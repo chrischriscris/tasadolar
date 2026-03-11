@@ -9,7 +9,9 @@ const { symbol = "$" } = Astro.props;
 ---
 
 <div class="bg-card flex items-center rounded-2xl p-3">
-  <span id="converter-symbol" class="text-xl font-light text-white/60 pr-3">{symbol}</span>
+  <span id="converter-symbol" class="pr-3 text-xl font-light text-white/60"
+    >{symbol}</span
+  >
   <div class="min-w-0 flex-1 overflow-hidden">
     <input
       id="converter-input"
