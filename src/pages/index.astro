@@ -1,11 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import Header from "@/components/Header.astro";
-import ExchangeGapCard from "@/components/ExchangeGapCard.astro";
-import SectionHeader from "@/components/SectionHeader.astro";
-import RatesList from "@/components/RatesList.astro";
-import CurrencyTabs from "@/components/CurrencyTabs.astro";
-import ConverterInput from "@/components/ConverterInput.astro";
+import RatesPanel from "@/components/RatesPanel";
 import { fetchAllRates } from "@/lib/rates";
 
 // All rate fetching + computation lives in src/lib/rates.ts
@@ -16,27 +12,11 @@ const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
 <Layout>
   <div class="mx-auto flex h-full min-h-0 max-w-md flex-col overflow-hidden">
     <Header />
-
-    <main class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden p-4">
-      <section class="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
-        <SectionHeader
-          title="Tasas de Referencia"
-          lastUpdated={lastUpdatedText}
-        />
-        <div class="min-h-0 flex-1 overflow-y-auto">
-          <RatesList rates={cards} />
-        </div>
-      </section>
-
-      <section class="mt-auto mb-4 flex flex-col gap-3">
-        <ExchangeGapCard percentage={exchangeGapPercentage} />
-        <CurrencyTabs activeTab="USD" />
-        <ConverterInput symbol="$" />
-      </section>
-    </main>
+    <RatesPanel
+      cards={cards}
+      exchangeGapPercentage={exchangeGapPercentage}
+      lastUpdatedText={lastUpdatedText}
+      client:load
+    />
   </div>
 </Layout>
-
-<script>
-  import "@/scripts/converter";
-</script>
