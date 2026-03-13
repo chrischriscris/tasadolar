@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import ExchangeGapCard from "@/components/ExchangeGapCard.astro";
 import SectionHeader from "@/components/SectionHeader.astro";
-import RateCard from "@/components/RateCard.astro";
+import RatesList from "@/components/RatesList.astro";
 import CurrencyTabs from "@/components/CurrencyTabs.astro";
 import ConverterInput from "@/components/ConverterInput.astro";
 import { fetchAllRates } from "@/lib/rates";
@@ -24,7 +24,7 @@ const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
           lastUpdated={lastUpdatedText}
         />
         <div class="min-h-0 flex-1 overflow-y-auto">
-          <RateCard rates={cards} />
+          <RatesList rates={cards} />
         </div>
       </section>
 

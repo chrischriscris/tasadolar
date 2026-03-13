@@ -43,7 +43,7 @@ export interface RateCardData {
 }
 
 export interface AllRates {
-  /** Rate cards to pass to <RateCard rates={cards} /> */
+  /** Rate cards to pass to <RatesList rates={cards} /> */
   cards: RateCardData[];
 
   /** Exchange gap percentage (USDT vs official BCV) */

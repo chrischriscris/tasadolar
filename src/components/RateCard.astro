@@ -10,12 +10,10 @@ interface Rate {
 }
 
 interface Props {
-  rates: Rate[];
+  rate: Rate;
 }
 
-// No more hardcoded defaults – rates are always passed as props from index.astro
-// which gets them from src/lib/rates.ts → fetchAllRates()
-const { rates } = Astro.props;
+const { rate } = Astro.props;
 const RATE_DECIMALS = 2;
 
 const formatNumber = (value: number, decimals: number): string =>
@@ -38,57 +36,49 @@ const getIconUrl = (iconType: string): string => {
       return "";
   }
 };
+
+const iconUrl = getIconUrl(rate.icon);
+const fullValueText = `${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
+  rate.value,
+  RATE_DECIMALS,
+)}`;
 ---
 
-<div id="rate-card" class="flex flex-col gap-3">
-  {
-    rates.map((rate) => {
-      const iconUrl = getIconUrl(rate.icon);
-      const fullValueText = `${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
-        rate.value,
-        RATE_DECIMALS,
-      )}`;
+<div
+  class="group bg-card hover:bg-card/80 flex items-center gap-4 rounded-2xl p-3 transition-colors"
+  data-rate-row={rate.id}
+  data-currency={rate.currency}
+  data-base-rate={rate.value}
+  data-display-unit={rate.displayUnit}
+>
+  <div class="flex h-10 w-10 shrink-0 items-center justify-center">
+    <img
+      src={iconUrl}
+      alt={rate.icon}
+      class="h-8 w-8 rounded-xl object-cover"
+    />
+  </div>
 
-      return (
-        <div
-          class="group bg-card hover:bg-card/80 flex items-center gap-4 rounded-2xl p-3 transition-colors"
-          data-rate-row={rate.id}
-          data-currency={rate.currency}
-          data-base-rate={rate.value}
-          data-display-unit={rate.displayUnit}
-        >
-          <div class="flex h-10 w-10 shrink-0 items-center justify-center">
-            <img
-              src={iconUrl}
-              alt={rate.icon}
-              class="h-8 w-8 rounded-xl object-cover"
-            />
-          </div>
-
-          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span class="text-xs font-medium text-white/80">{rate.title}</span>
-            <div class="relative">
-              <span
-                class="text-teal peer block truncate text-xl font-bold"
-                data-rate-value={rate.id}
-                tabindex="0"
-                aria-label={fullValueText}
-                title={fullValueText}
-              >
-                {rate.displayUnit === "BS" ? "Bs." : "$"}{" "}
-                {formatNumber(rate.value, RATE_DECIMALS)}
-              </span>
-              <span
-                role="tooltip"
-                data-rate-tooltip={rate.id}
-                class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-0 z-10 w-max max-w-52 rounded-md bg-black/90 px-2 py-1 text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 peer-hover:opacity-100 peer-focus:opacity-100"
-              >
-                {fullValueText}
-              </span>
-            </div>
-          </div>
-        </div>
-      );
-    })
-  }
+  <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+    <span class="text-xs font-medium text-white/80">{rate.title}</span>
+    <div class="relative">
+      <span
+        class="text-teal peer block truncate text-xl font-bold"
+        data-rate-value={rate.id}
+        tabindex="0"
+        aria-label={fullValueText}
+        title={fullValueText}
+      >
+        {rate.displayUnit === "BS" ? "Bs." : "$"}
+        {formatNumber(rate.value, RATE_DECIMALS)}
+      </span>
+      <span
+        role="tooltip"
+        data-rate-tooltip={rate.id}
+        class="pointer-events-none absolute bottom-[calc(100%+0.5rem)] left-0 z-10 w-max max-w-52 rounded-md bg-black/90 px-2 py-1 text-[11px] font-medium tracking-normal text-white/90 opacity-0 transition-opacity duration-150 peer-hover:opacity-100 peer-focus:opacity-100"
+      >
+        {fullValueText}
+      </span>
+    </div>
+  </div>
 </div>

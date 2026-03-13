@@ -1,0 +1,23 @@
+---
+import RateCard from "@/components/RateCard.astro";
+
+interface Rate {
+  id: string;
+  title: string;
+  value: number;
+  change: number;
+  icon: "bcv" | "us" | "binance" | "eu";
+  currency: "USD" | "EUR" | "BS";
+  displayUnit: "BS" | "USD";
+}
+
+interface Props {
+  rates: Rate[];
+}
+
+const { rates } = Astro.props;
+---
+
+<div id="rates-list" class="flex flex-col gap-3">
+  {rates.map((rate) => <RateCard rate={rate} />)}
+</div>
