@@ -29,12 +29,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       </section>
 
       <section class="mt-auto flex flex-col gap-4">
-        <ExchangeGapCard
-          percentage={brechaPercentage}
-          change={brechaPercentage}
-          label="BRECHA CAMBIARIA"
-          description="Diferencia entre BCV y Paralelo"
-        />
+        <ExchangeGapCard percentage={brechaPercentage} />
         <CurrencyTabs activeTab="USD" />
         <ConverterInput symbol="$" />
       </section>
