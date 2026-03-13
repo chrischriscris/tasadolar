@@ -10,7 +10,7 @@ import { fetchAllRates } from "@/lib/rates";
 
 // All rate fetching + computation lives in src/lib/rates.ts
 // See that module for architecture notes and how to modify sources.
-const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
+const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
 ---
 
 <Layout>
@@ -29,7 +29,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
       </section>
 
       <section class="mt-auto mb-4 flex flex-col gap-3">
-        <ExchangeGapCard percentage={brechaPercentage} />
+        <ExchangeGapCard percentage={exchangeGapPercentage} />
         <CurrencyTabs activeTab="USD" />
         <ConverterInput symbol="$" />
       </section>

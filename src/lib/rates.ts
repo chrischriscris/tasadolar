@@ -7,7 +7,7 @@
 // ARCHITECTURE NOTES (for when you revisit this):
 // ------------------------------------------------
 // - Each source (bcv.ts, binance.ts) handles its own fetch + error handling.
-// - This module combines them and computes derived data (brecha, timestamps).
+// - This module combines them and computes derived data (exchange gap, timestamps).
 // - The RateCard shape matches what `RateCard.astro` expects as props.
 // - If a source fails, its entry gets `value: 0` so the UI still renders.
 //
@@ -46,8 +46,8 @@ export interface AllRates {
   /** Rate cards to pass to <RateCard rates={cards} /> */
   cards: RateCardData[];
 
-  /** Brecha cambiaria percentage (USDT vs oficial BCV) */
-  brechaPercentage: number;
+  /** Exchange gap percentage (USDT vs official BCV) */
+  exchangeGapPercentage: number;
 
   /** Human-readable "last updated" text */
   lastUpdatedText: string;
@@ -66,7 +66,7 @@ function roundUp(value: number, decimals = 2): number {
   return Math.ceil(value * factor) / factor;
 }
 
-/** Format an ISO date into a relative "Actualizado hace Xm" string */
+/** Format an ISO date into a relative Spanish "last updated" string */
 function formatLastUpdated(dates: (string | undefined)[]): string {
   const validDates = dates
     .filter((d): d is string => !!d)
@@ -93,7 +93,7 @@ function formatLastUpdated(dates: (string | undefined)[]): string {
  *
  * ```ts
  * import { fetchAllRates } from "@/lib/rates";
- * const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
+ * const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
  * ```
  */
 export async function fetchAllRates(): Promise<AllRates> {
@@ -169,8 +169,8 @@ export async function fetchAllRates(): Promise<AllRates> {
     },
   ];
 
-  // -- Compute brecha cambiaria ----------------------------------------------
-  const brechaPercentage =
+  // -- Compute exchange gap ---------------------------------------------------
+  const exchangeGapPercentage =
     bcvUsdPrice > 0 && binancePrice > 0
       ? Number((((binancePrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2))
       : 0;
@@ -184,7 +184,7 @@ export async function fetchAllRates(): Promise<AllRates> {
 
   return {
     cards,
-    brechaPercentage,
+    exchangeGapPercentage,
     lastUpdatedText,
     raw: { bcvUsd, binance, bcvEur },
   };
