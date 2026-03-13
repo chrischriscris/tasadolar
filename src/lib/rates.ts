@@ -28,7 +28,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Rate } from "./types";
-import { fetchBcvUsd, fetchBcvEur, fetchParaleloUsd } from "./bcv";
+import { fetchBcvUsd, fetchBcvEur } from "./bcv";
 import { fetchBinanceRate } from "./binance";
 
 /** Shape expected by RateCard.astro */
@@ -46,7 +46,7 @@ export interface AllRates {
   /** Rate cards to pass to <RateCard rates={cards} /> */
   cards: RateCardData[];
 
-  /** Brecha cambiaria percentage (paralelo vs oficial) */
+  /** Brecha cambiaria percentage (USDT vs oficial BCV) */
   brechaPercentage: number;
 
   /** Human-readable "last updated" text */
@@ -56,7 +56,6 @@ export interface AllRates {
   raw: {
     bcvUsd: Rate;
     binance: Rate;
-    paraleloUsd: Rate;
     bcvEur: Rate;
   };
 }
@@ -99,17 +98,15 @@ function formatLastUpdated(dates: (string | undefined)[]): string {
  */
 export async function fetchAllRates(): Promise<AllRates> {
   // -- Fetch all sources in parallel ----------------------------------------
-  const [bcvUsd, binance, paraleloUsd, bcvEur] = await Promise.all([
+  const [bcvUsd, binance, bcvEur] = await Promise.all([
     fetchBcvUsd(),
     fetchBinanceRate(),
-    fetchParaleloUsd(),
     fetchBcvEur(),
   ]);
 
   // -- Extract prices (0 if failed) -----------------------------------------
   const bcvUsdPrice = roundUp(bcvUsd.price ?? 0);
   const binancePrice = roundUp(binance.price ?? 0);
-  const paraleloUsdPrice = roundUp(paraleloUsd.price ?? 0);
   const bcvEurPrice = roundUp(bcvEur.price ?? 0);
   const bcvToUsdtRate =
     bcvUsdPrice > 0 && binancePrice > 0
@@ -174,17 +171,14 @@ export async function fetchAllRates(): Promise<AllRates> {
 
   // -- Compute brecha cambiaria ----------------------------------------------
   const brechaPercentage =
-    bcvUsdPrice > 0 && paraleloUsdPrice > 0
-      ? Number(
-          (((paraleloUsdPrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2),
-        )
+    bcvUsdPrice > 0 && binancePrice > 0
+      ? Number((((binancePrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2))
       : 0;
 
   // -- Format last updated text ----------------------------------------------
   const lastUpdatedText = formatLastUpdated([
     bcvUsd.updatedAt,
     binance.updatedAt,
-    paraleloUsd.updatedAt,
     bcvEur.updatedAt,
   ]);
 
@@ -192,6 +186,6 @@ export async function fetchAllRates(): Promise<AllRates> {
     cards,
     brechaPercentage,
     lastUpdatedText,
-    raw: { bcvUsd, binance, paraleloUsd, bcvEur },
+    raw: { bcvUsd, binance, bcvEur },
   };
 }

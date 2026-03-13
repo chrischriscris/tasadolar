@@ -28,7 +28,7 @@ const { cards, brechaPercentage, lastUpdatedText } = await fetchAllRates();
         </div>
       </section>
 
-      <section class="mt-auto flex flex-col gap-4">
+      <section class="mt-auto mb-4 flex flex-col gap-3">
         <ExchangeGapCard percentage={brechaPercentage} />
         <CurrencyTabs activeTab="USD" />
         <ConverterInput symbol="$" />
