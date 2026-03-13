@@ -24,24 +24,3 @@ const tabs = ["USD", "EUR", "BS"] as const;
     ))
   }
 </div>
-
-<script>
-  const buttons = document.querySelectorAll("[data-tab]");
-  buttons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const tab = button.getAttribute("data-tab");
-      buttons.forEach((btn) => {
-        if (btn.getAttribute("data-tab") === tab) {
-          btn.classList.add("bg-teal", "text-primary-foreground");
-          btn.classList.remove("text-white/60");
-        } else {
-          btn.classList.remove("bg-teal", "text-primary-foreground");
-          btn.classList.add("text-white/60");
-        }
-      });
-      document.dispatchEvent(
-        new CustomEvent("tab-change", { detail: { tab } }),
-      );
-    });
-  });
-</script>
