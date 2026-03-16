@@ -94,175 +94,190 @@ const visibleCards = cards.filter((card) => card.currency === "USD");
     </section>
   </main>
 
-  <script>
-    const tabs = Array.from(document.querySelectorAll("[data-tab]"));
-    const rows = Array.from(document.querySelectorAll("[data-rate-row]"));
-    const valueNodes = new Map();
-    const amountInput = document.getElementById("amount-input");
-    const amountSymbol = document.getElementById("amount-symbol");
-    const amountError = document.getElementById("amount-error");
-    const resetButton = document.getElementById("amount-reset");
-    const symbols = { USD: "$", EUR: "€", BS: "Bs." };
-    const decimals = 2;
-    let activeTab = "USD";
+  <script lang="ts">
+    (() => {
+      type Tab = "USD" | "EUR" | "BS";
 
-    for (const row of rows) {
-      const id = row.getAttribute("data-rate-row");
-      const valueNode = document.querySelector(`[data-rate-value="${id}"]`);
-      if (id && valueNode) valueNodes.set(id, valueNode);
-    }
+      const tabs = Array.from(
+        document.querySelectorAll<HTMLButtonElement>("[data-tab]"),
+      );
+      const rows = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-rate-row]"),
+      );
+      const amountInput = document.getElementById(
+        "amount-input",
+      ) as HTMLInputElement | null;
+      const amountSymbol = document.getElementById("amount-symbol");
+      const amountError = document.getElementById("amount-error");
+      const resetButton = document.getElementById(
+        "amount-reset",
+      ) as HTMLButtonElement | null;
+      const valueNodes = new Map<string, HTMLElement>();
 
-    function roundUp(value, places = decimals) {
-      if (!Number.isFinite(value)) return 0;
-      const factor = 10 ** places;
-      return Math.ceil(value * factor) / factor;
-    }
+      if (!amountInput) return;
 
-    function formatNumber(value, places = decimals) {
-      return new Intl.NumberFormat("es-VE", {
-        minimumFractionDigits: places,
-        maximumFractionDigits: places,
-      }).format(value);
-    }
+      const symbols: Record<Tab, string> = { USD: "$", EUR: "€", BS: "Bs." };
+      const decimals = 2;
+      let activeTab: Tab = "USD";
 
-    function sanitizeInput(raw) {
-      let cleaned = raw.replace(/[^0-9,]/g, "");
-      const commaIndex = cleaned.indexOf(",");
-      if (commaIndex !== -1) {
-        cleaned =
-          cleaned.slice(0, commaIndex + 1) +
-          cleaned.slice(commaIndex + 1).replace(/,/g, "");
+      for (const row of rows) {
+        const id = row.getAttribute("data-rate-row");
+        const node = document.querySelector<HTMLElement>(
+          `[data-rate-value="${id}"]`,
+        );
+        if (id && node) valueNodes.set(id, node);
       }
-      const [intPart = "", decPartRaw] = cleaned.split(",");
-      const intDigits = intPart.replace(/^0+(?=\d)/, "") || "0";
-      const formattedInt = intDigits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      const decPart = decPartRaw ? decPartRaw.slice(0, decimals) : "";
-      return decPartRaw !== undefined
-        ? `${formattedInt},${decPart}`
-        : formattedInt;
-    }
 
-    function validateAmount(raw) {
-      if (!amountInput) return true;
+      function roundUp(value: number, places = decimals): number {
+        if (!Number.isFinite(value)) return 0;
+        const factor = 10 ** places;
+        return Math.ceil(value * factor) / factor;
+      }
 
-      if (!raw) {
+      function formatNumber(value: number, places = decimals): string {
+        return new Intl.NumberFormat("es-VE", {
+          minimumFractionDigits: places,
+          maximumFractionDigits: places,
+        }).format(value);
+      }
+
+      function sanitizeInput(raw: string): string {
+        let cleaned = raw.replace(/[^0-9,]/g, "");
+        const commaIndex = cleaned.indexOf(",");
+        if (commaIndex !== -1) {
+          cleaned =
+            cleaned.slice(0, commaIndex + 1) +
+            cleaned.slice(commaIndex + 1).replace(/,/g, "");
+        }
+        const [intPart = "", decPartRaw] = cleaned.split(",");
+        const intDigits = intPart.replace(/^0+(?=\d)/, "") || "0";
+        const formattedInt = intDigits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        const decPart = decPartRaw ? decPartRaw.slice(0, decimals) : "";
+        return decPartRaw !== undefined
+          ? `${formattedInt},${decPart}`
+          : formattedInt;
+      }
+
+      function validateAmount(raw: string): boolean {
+        if (!raw) {
+          amountInput.classList.remove("invalid");
+          amountInput.setAttribute("aria-invalid", "false");
+          if (amountError) amountError.textContent = "";
+          return true;
+        }
+
+        const validPattern =
+          /^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(raw);
+        if (!validPattern) {
+          amountInput.classList.add("invalid");
+          amountInput.setAttribute("aria-invalid", "true");
+          if (amountError)
+            amountError.textContent = "Monto invalido (ej: 12,50)";
+          return false;
+        }
+
+        const amount = Number.parseFloat(
+          raw.replace(/\./g, "").replace(",", "."),
+        );
+        const validAmount = Number.isFinite(amount) && amount > 0;
+        if (!validAmount) {
+          amountInput.classList.add("invalid");
+          amountInput.setAttribute("aria-invalid", "true");
+          if (amountError)
+            amountError.textContent = "El monto debe ser mayor a 0";
+          return false;
+        }
+
         amountInput.classList.remove("invalid");
         amountInput.setAttribute("aria-invalid", "false");
         if (amountError) amountError.textContent = "";
         return true;
       }
 
-      const validPattern =
-        /^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(raw);
-      if (!validPattern) {
-        amountInput.classList.add("invalid");
-        amountInput.setAttribute("aria-invalid", "true");
-        if (amountError) amountError.textContent = "Monto invalido (ej: 12,50)";
-        return false;
+      function parseAmount(): number {
+        const raw = amountInput.value.trim();
+        if (!raw) return 1;
+        const parsed = Number.parseFloat(
+          raw.replace(/\./g, "").replace(",", "."),
+        );
+        return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
       }
 
-      const amount = Number.parseFloat(
-        raw.replace(/\./g, "").replace(",", "."),
-      );
-      const validAmount = Number.isFinite(amount) && amount > 0;
-      if (!validAmount) {
-        amountInput.classList.add("invalid");
-        amountInput.setAttribute("aria-invalid", "true");
-        if (amountError)
-          amountError.textContent = "El monto debe ser mayor a 0";
-        return false;
-      }
+      function formatRateValue(row: HTMLElement, amount: number): string {
+        const baseRate = Number.parseFloat(
+          row.getAttribute("data-base-rate") || "0",
+        );
+        const currency = row.getAttribute("data-currency") || "USD";
+        const unit = row.getAttribute("data-display-unit") || "BS";
 
-      amountInput.classList.remove("invalid");
-      amountInput.setAttribute("aria-invalid", "false");
-      if (amountError) amountError.textContent = "";
-      return true;
-    }
+        if (!(baseRate > 0)) return "Sin datos";
 
-    function parseAmount() {
-      if (!amountInput) return 1;
-      const raw = amountInput.value.trim();
-      if (!raw) return 1;
-      const parsed = Number.parseFloat(
-        raw.replace(/\./g, "").replace(",", "."),
-      );
-      return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-    }
+        if (activeTab === "BS") {
+          const converted = roundUp(amount / baseRate);
+          const prefix = currency === "EUR" ? "€" : "$";
+          return `${prefix} ${formatNumber(converted)}`;
+        }
 
-    function formatRateValue(row, amount) {
-      const baseRate = Number.parseFloat(
-        row.getAttribute("data-base-rate") || "0",
-      );
-      const currency = row.getAttribute("data-currency") || "USD";
-      const unit = row.getAttribute("data-display-unit") || "BS";
-
-      if (!(baseRate > 0)) return "Sin datos";
-
-      if (activeTab === "BS") {
-        const converted = roundUp(amount / baseRate);
-        const prefix = currency === "EUR" ? "€" : "$";
+        const converted = roundUp(amount * baseRate);
+        const prefix = unit === "USD" ? "$" : "Bs.";
         return `${prefix} ${formatNumber(converted)}`;
       }
 
-      const converted = roundUp(amount * baseRate);
-      const prefix = unit === "USD" ? "$" : "Bs.";
-      return `${prefix} ${formatNumber(converted)}`;
-    }
+      function updateRows(): void {
+        validateAmount(amountInput.value.trim());
+        const amount = parseAmount();
 
-    function updateRows() {
-      if (amountInput) validateAmount(amountInput.value.trim());
-
-      const amount = parseAmount();
-      for (const row of rows) {
-        const currency = row.getAttribute("data-currency");
-        const shouldShow = activeTab === "BS" || currency === activeTab;
-        row.classList.toggle("is-hidden", !shouldShow);
-        const id = row.getAttribute("data-rate-row");
-        const valueNode = id ? valueNodes.get(id) : null;
-        if (valueNode) valueNode.textContent = formatRateValue(row, amount);
+        for (const row of rows) {
+          const currency = row.getAttribute("data-currency");
+          const shouldShow = activeTab === "BS" || currency === activeTab;
+          row.classList.toggle("is-hidden", !shouldShow);
+          const id = row.getAttribute("data-rate-row");
+          const valueNode = id ? valueNodes.get(id) : null;
+          if (valueNode) valueNode.textContent = formatRateValue(row, amount);
+        }
       }
-    }
 
-    for (const tab of tabs) {
-      tab.addEventListener("click", () => {
-        const next = tab.getAttribute("data-tab");
-        if (next === "USD" || next === "EUR" || next === "BS") {
-          activeTab = next;
-        } else {
-          activeTab = "USD";
-        }
-        for (const node of tabs) {
-          node.classList.toggle("is-active", node === tab);
-        }
-        if (amountSymbol) amountSymbol.textContent = symbols[activeTab];
+      for (const tab of tabs) {
+        tab.addEventListener("click", () => {
+          const next = tab.getAttribute("data-tab");
+          if (next === "USD" || next === "EUR" || next === "BS") {
+            activeTab = next;
+          } else {
+            activeTab = "USD";
+          }
+          for (const node of tabs)
+            node.classList.toggle("is-active", node === tab);
+          if (amountSymbol) amountSymbol.textContent = symbols[activeTab];
+          updateRows();
+        });
+      }
+
+      amountInput.addEventListener("input", (event) => {
+        const input = event.currentTarget as HTMLInputElement | null;
+        if (!input) return;
+        input.value = sanitizeInput(input.value);
         updateRows();
       });
-    }
 
-    amountInput?.addEventListener("input", (event) => {
-      const input = event.currentTarget;
-      if (!(input instanceof HTMLInputElement)) return;
-      input.value = sanitizeInput(input.value);
+      amountInput.addEventListener("blur", () => {
+        if (!amountInput.value) return;
+        if (!validateAmount(amountInput.value.trim())) return;
+        amountInput.value = formatNumber(parseAmount());
+        updateRows();
+      });
+
+      if (resetButton) {
+        resetButton.addEventListener("click", () => {
+          amountInput.value = "";
+          amountInput.classList.remove("invalid");
+          amountInput.setAttribute("aria-invalid", "false");
+          if (amountError) amountError.textContent = "";
+          amountInput.focus();
+          updateRows();
+        });
+      }
+
       updateRows();
-    });
-
-    amountInput?.addEventListener("blur", () => {
-      if (!amountInput || !amountInput.value) return;
-      if (!validateAmount(amountInput.value.trim())) return;
-      amountInput.value = formatNumber(parseAmount());
-      updateRows();
-    });
-
-    resetButton?.addEventListener("click", () => {
-      if (!amountInput) return;
-      amountInput.value = "";
-      amountInput.classList.remove("invalid");
-      amountInput.setAttribute("aria-invalid", "false");
-      if (amountError) amountError.textContent = "";
-      amountInput.focus();
-      updateRows();
-    });
-
-    updateRows();
+    })();
   </script>
 </Layout>
