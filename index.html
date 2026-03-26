@@ -1,0 +1,879 @@
+<!doctype html>
+<html lang="es" class="dark h-full overflow-hidden">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36' fill='none'%3E%3Crect width='36' height='36' rx='8' fill='%230f172a'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='%2334d399' font-family='system-ui' font-weight='bold'%3E$%3C/text%3E%3C/svg%3E"
+    />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>TasaDolar - Tasas de Cambio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --background: #0a0a0a;
+        --foreground: #ffffff;
+        --card: #1a1a1a;
+        --card-foreground: #ffffff;
+        --primary: #00d4aa;
+        --primary-foreground: #0a0a0a;
+        --secondary: #262626;
+        --secondary-foreground: #ffffff;
+        --muted: #262626;
+        --muted-foreground: #a1a1aa;
+        --border: rgba(255, 255, 255, 0.1);
+        --input: rgba(255, 255, 255, 0.15);
+        --teal: #00d4aa;
+        --positive: #00d4aa;
+        --negative: #ff4444;
+      }
+
+      * {
+        box-sizing: border-box;
+        border-color: var(--border);
+        outline-color: color-mix(in srgb, var(--primary) 50%, transparent);
+      }
+
+      html {
+        font-family: "Inter", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        margin: 0;
+        background-color: var(--background);
+        color: var(--foreground);
+        min-height: 100vh;
+        height: 100dvh;
+        overflow: hidden;
+      }
+
+      .container {
+        margin: 0 auto;
+        height: 100%;
+        max-width: 28rem;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        height: 4rem;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 1.25rem;
+        backdrop-filter: blur(24px);
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .logo {
+        width: 40px;
+        height: 40px;
+      }
+
+      .logo-text {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: white;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        gap: 1rem;
+        overflow: hidden;
+        padding: 1rem;
+      }
+
+      .section {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        gap: 1rem;
+        overflow: hidden;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .section-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+      }
+
+      .section-updated {
+        font-size: 0.875rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .rates-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .rate-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border-radius: 1rem;
+        padding: 0.75rem;
+        background-color: var(--card);
+        transition: background-color 0.15s;
+      }
+
+      .rate-card:hover {
+        background-color: rgba(26, 26, 26, 0.8);
+      }
+
+      .rate-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .rate-icon img {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.75rem;
+        object-fit: cover;
+      }
+
+      .rate-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+      }
+
+      .rate-title {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .rate-value-container {
+        position: relative;
+      }
+
+      .rate-value {
+        display: block;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--teal);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .rate-tooltip {
+        position: absolute;
+        bottom: calc(100% + 0.5rem);
+        left: 0;
+        z-index: 10;
+        width: max-content;
+        max-width: 13rem;
+        border-radius: 0.375rem;
+        background-color: rgba(0, 0, 0, 0.9);
+        padding: 0.25rem 0.5rem;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: normal;
+        color: rgba(255, 255, 255, 0.9);
+        opacity: 0;
+        transition: opacity 0.15s;
+        pointer-events: none;
+      }
+
+      .rate-value:hover + .rate-tooltip,
+      .rate-value:focus + .rate-tooltip {
+        opacity: 1;
+      }
+
+      .converter-section {
+        margin-top: auto;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .exchange-gap {
+        margin: 0 auto;
+        display: flex;
+        width: fit-content;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      .exchange-gap-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      .exchange-gap-pill {
+        display: inline-flex;
+        flex-shrink: 0;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: help;
+        position: relative;
+      }
+
+      .exchange-gap-pill.positive {
+        background-color: rgba(0, 212, 170, 0.1);
+        color: rgba(0, 212, 170, 0.75);
+      }
+
+      .exchange-gap-pill.negative {
+        background-color: rgba(255, 68, 68, 0.1);
+        color: rgba(255, 68, 68, 0.75);
+      }
+
+      .tabs {
+        margin-left: auto;
+        display: inline-grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-radius: 0.75rem;
+        background-color: var(--card);
+        padding: 0.25rem;
+      }
+
+      .tab-button {
+        min-width: 5rem;
+        border-radius: 0.5rem;
+        padding: 0.25rem 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        border: none;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .tab-button:hover {
+        color: white;
+      }
+
+      .tab-button.active {
+        background-color: var(--teal);
+        color: var(--primary-foreground);
+      }
+
+      .converter-input {
+        display: flex;
+        align-items: center;
+        border-radius: 1rem;
+        padding: 0.75rem;
+        background-color: var(--card);
+      }
+
+      .converter-symbol {
+        padding-right: 0.75rem;
+        font-size: 1.25rem;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .converter-input-wrapper {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .converter-input-wrapper input {
+        width: 100%;
+        min-width: 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: white;
+        font-family: inherit;
+      }
+
+      .converter-input-wrapper input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .converter-divider {
+        width: 1px;
+        height: 1.25rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        margin: 0 0.5rem;
+      }
+
+      .converter-reset {
+        border-radius: 9999px;
+        padding: 0.375rem;
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+
+      .converter-reset:hover {
+        color: white;
+      }
+
+      .converter-reset svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--muted-foreground);
+      }
+
+      .error {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--negative);
+        text-align: center;
+        padding: 1rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 2px solid var(--muted);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header-content">
+          <svg
+            class="logo"
+            viewBox="0 0 36 36"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect width="36" height="36" rx="8" fill="#0f172a"></rect>
+            <text
+              x="50%"
+              y="54%"
+              dominant-baseline="middle"
+              text-anchor="middle"
+              font-size="20"
+              fill="#34d399"
+              font-family="system-ui"
+              font-weight="bold"
+            >
+              $
+            </text>
+          </svg>
+          <h1 class="logo-text">TasaDolar</h1>
+        </div>
+      </header>
+
+      <main>
+        <section class="section">
+          <div class="section-header">
+            <h2 class="section-title">Tasas de Referencia</h2>
+            <span class="section-updated" id="last-updated">Cargando...</span>
+          </div>
+          <div class="rates-list" id="rates-list">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="converter-section">
+          <div class="exchange-gap">
+            <p class="exchange-gap-label">BRECHA CAMBIARIA</p>
+            <span
+              class="exchange-gap-pill positive"
+              id="exchange-gap"
+              title="Diferencia entre BCV y Paralelo"
+              >--</span
+            >
+          </div>
+
+          <div class="tabs">
+            <button class="tab-button active" data-tab="USD">USD</button>
+            <button class="tab-button" data-tab="EUR">EUR</button>
+            <button class="tab-button" data-tab="BS">BS</button>
+          </div>
+
+          <div class="converter-input">
+            <span class="converter-symbol" id="converter-symbol">$</span>
+            <div class="converter-input-wrapper">
+              <input
+                type="text"
+                inputmode="decimal"
+                placeholder="1.00"
+                id="converter-input"
+                autofocus
+              />
+            </div>
+            <span class="converter-divider"></span>
+            <button
+              type="button"
+              class="converter-reset"
+              id="converter-reset"
+              aria-label="Revertir monto"
+              title="Revertir"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 7v6h6" />
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+              </svg>
+            </button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const SYMBOLS = { USD: "$", EUR: "\u20AC", BS: "Bs." };
+      const RATE_DECIMALS = 2;
+      const VALID_TABS = new Set(["USD", "EUR", "BS"]);
+
+      const DOLARES_URL = "https://ve.dolarapi.com/v1/dolares";
+      const EUROS_URL = "https://ve.dolarapi.com/v1/euros";
+      const TIMEOUT_MS = 5000;
+
+      let activeTab = "USD";
+      let ratesData = {
+        bcvUsd: null,
+        bcvEur: null,
+        binance: null,
+      };
+
+      function roundUp(value, decimals = RATE_DECIMALS) {
+        if (!isFinite(value)) return 0;
+        const factor = 10 ** decimals;
+        return Math.ceil(value * factor) / factor;
+      }
+
+      function formatNumber(value, decimals) {
+        return new Intl.NumberFormat("es-VE", {
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        }).format(value);
+      }
+
+      function parseDisplayValue(str) {
+        const normalized = str.replace(/\./g, "").replace(",", ".");
+        return parseFloat(normalized);
+      }
+
+      function sanitizeInput(raw) {
+        let cleaned = raw.replace(/[^0-9,]/g, "");
+        const commaIndex = cleaned.indexOf(",");
+        if (commaIndex !== -1) {
+          cleaned =
+            cleaned.slice(0, commaIndex + 1) +
+            cleaned.slice(commaIndex + 1).replace(/,/g, "");
+        }
+        const [intPart, decPartRaw] = cleaned.split(",");
+        const decPart = decPartRaw
+          ? decPartRaw.slice(0, RATE_DECIMALS)
+          : undefined;
+        const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        return decPart !== undefined
+          ? `${formattedInt},${decPart}`
+          : formattedInt;
+      }
+
+      function getIconUrl(iconType) {
+        switch (iconType) {
+          case "bcv":
+            return "https://flagcdn.com/w80/ve.png";
+          case "us":
+            return "https://flagcdn.com/w80/us.png";
+          case "binance":
+            return "https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png";
+          case "eu":
+            return "https://flagcdn.com/w80/eu.png";
+          default:
+            return "";
+        }
+      }
+
+      function formatLastUpdated(dates) {
+        const validDates = dates
+          .filter((d) => d)
+          .map((d) => new Date(d).getTime())
+          .filter((t) => !isNaN(t));
+
+        if (validDates.length === 0) return "Sin datos";
+
+        const mostRecent = new Date(Math.max(...validDates));
+        const now = new Date();
+        const diffMs = now.getTime() - mostRecent.getTime();
+        const diffMinutes = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+
+        if (diffMinutes < 1) return "Actualizado hace un momento";
+        if (diffMinutes < 60) return `Actualizado hace ${diffMinutes}m`;
+        if (diffHours < 24) return `Actualizado hace ${diffHours}h`;
+        return `Actualizado: ${mostRecent.toLocaleDateString("es-VE")}`;
+      }
+
+      async function fetchWithTimeout(url, options = {}, timeout = TIMEOUT_MS) {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+        try {
+          const res = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res;
+        } catch (err) {
+          clearTimeout(timeoutId);
+          throw err;
+        }
+      }
+
+      async function fetchBcvUsd() {
+        try {
+          const res = await fetchWithTimeout(DOLARES_URL);
+          const data = await res.json();
+          const oficial = data.find((d) => d.fuente === "oficial");
+          if (!oficial) throw new Error("No oficial entry");
+          return {
+            price: oficial.promedio,
+            updatedAt: oficial.fechaActualizacion,
+          };
+        } catch (err) {
+          console.error("[BCV USD] Failed:", err.message);
+          return null;
+        }
+      }
+
+      async function fetchBcvEur() {
+        try {
+          const res = await fetchWithTimeout(EUROS_URL);
+          const data = await res.json();
+          const oficial = data.find((d) => d.fuente === "oficial");
+          if (!oficial) throw new Error("No oficial entry");
+          return {
+            price: oficial.promedio,
+            updatedAt: oficial.fechaActualizacion,
+          };
+        } catch (err) {
+          console.error("[BCV EUR] Failed:", err.message);
+          return null;
+        }
+      }
+
+      async function fetchParaleloRate() {
+        try {
+          const res = await fetchWithTimeout(DOLARES_URL);
+          const data = await res.json();
+          const paralelo = data.find((d) => d.fuente === "paralelo");
+          if (!paralelo) throw new Error("No paralelo entry");
+          return {
+            price: paralelo.promedio,
+            updatedAt: paralelo.fechaActualizacion,
+          };
+        } catch (err) {
+          console.error("[Paralelo] Failed:", err.message);
+          return null;
+        }
+      }
+
+      function renderRateCard(rate) {
+        const displayUnit = rate.displayUnit === "BS" ? "Bs." : "$";
+        const fullValueText = `${displayUnit} ${formatNumber(rate.value, RATE_DECIMALS)}`;
+
+        return `
+        <div class="rate-card" data-rate-row="${rate.id}" data-currency="${rate.currency}" data-base-rate="${rate.value}" data-display-unit="${rate.displayUnit}">
+          <div class="rate-icon">
+            <img src="${getIconUrl(rate.icon)}" alt="${rate.icon}">
+          </div>
+          <div class="rate-info">
+            <span class="rate-title">${rate.title}</span>
+            <div class="rate-value-container">
+              <span class="rate-value" data-rate-value="${rate.id}" tabindex="0" aria-label="${fullValueText}" title="${fullValueText}">
+                ${displayUnit} ${formatNumber(rate.value, RATE_DECIMALS)}
+              </span>
+              <span class="rate-tooltip">${fullValueText}</span>
+            </div>
+          </div>
+        </div>
+      `;
+      }
+
+      function updateUI() {
+        const bcvUsdPrice = roundUp(ratesData.bcvUsd?.price ?? 0);
+        const binancePrice = roundUp(ratesData.binance?.price ?? 0);
+        const bcvEurPrice = roundUp(ratesData.bcvEur?.price ?? 0);
+        const bcvToUsdtRate =
+          bcvUsdPrice > 0 && binancePrice > 0
+            ? roundUp(bcvUsdPrice / binancePrice)
+            : 0;
+        const usdtToBcvRate =
+          bcvUsdPrice > 0 && binancePrice > 0
+            ? roundUp(binancePrice / bcvUsdPrice)
+            : 0;
+
+        const cards = [
+          {
+            id: "bcv-usd",
+            title: "Tasa BCV",
+            value: bcvUsdPrice,
+            icon: "bcv",
+            currency: "USD",
+            displayUnit: "BS",
+          },
+          {
+            id: "binance-usd",
+            title: "Tasa Paralelo",
+            value: binancePrice,
+            icon: "us",
+            currency: "USD",
+            displayUnit: "BS",
+          },
+          {
+            id: "bcv-to-usdt",
+            title: "BCV -> Paralelo",
+            value: bcvToUsdtRate,
+            icon: "bcv",
+            currency: "USD",
+            displayUnit: "USD",
+          },
+          {
+            id: "usdt-to-bcv",
+            title: "Paralelo -> BCV",
+            value: usdtToBcvRate,
+            icon: "us",
+            currency: "USD",
+            displayUnit: "USD",
+          },
+          {
+            id: "bcv-eur",
+            title: "Tasa Euro BCV",
+            value: bcvEurPrice,
+            icon: "eu",
+            currency: "EUR",
+            displayUnit: "BS",
+          },
+        ];
+
+        const ratesList = document.getElementById("rates-list");
+        ratesList.innerHTML = cards.map(renderRateCard).join("");
+
+        const exchangeGap =
+          bcvUsdPrice > 0 && binancePrice > 0
+            ? (((binancePrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2)
+            : null;
+
+        const gapEl = document.getElementById("exchange-gap");
+        if (exchangeGap !== null) {
+          gapEl.textContent = `${exchangeGap}%`;
+          gapEl.className = `exchange-gap-pill ${parseFloat(exchangeGap) >= 0 ? "positive" : "negative"}`;
+          gapEl.title = `Diferencia entre BCV y Paralelo (${parseFloat(exchangeGap) >= 0 ? "+" : ""}${exchangeGap}%)`;
+        } else {
+          gapEl.textContent = "--";
+        }
+
+        const lastUpdated = formatLastUpdated([
+          ratesData.bcvUsd?.updatedAt,
+          ratesData.binance?.updatedAt,
+          ratesData.bcvEur?.updatedAt,
+        ]);
+        document.getElementById("last-updated").textContent = lastUpdated;
+
+        updateRates();
+      }
+
+      function updateRates() {
+        const input = document.getElementById("converter-input");
+        const raw = input.value;
+        const parsed = parseDisplayValue(raw);
+        const amount = isNaN(parsed) || parsed < 0 ? 1 : parsed;
+
+        const rows = document.querySelectorAll("[data-rate-row]");
+
+        rows.forEach((row) => {
+          const currency = row.dataset.currency;
+          const baseRate = parseFloat(row.dataset.baseRate);
+          const displayUnit = row.dataset.displayUnit;
+          const id = row.dataset.rateRow;
+          const valueEl = row.querySelector(`[data-rate-value="${id}"]`);
+          const tooltipEl = row.querySelector(".rate-tooltip");
+
+          if (activeTab === "BS") {
+            row.style.display = "";
+            const converted = baseRate > 0 ? roundUp(amount / baseRate) : 0;
+            const unit = currency === "EUR" ? "\u20AC" : "$";
+            const text = `${unit} ${formatNumber(converted, RATE_DECIMALS)}`;
+            if (valueEl) {
+              valueEl.textContent = text;
+              valueEl.title = text;
+            }
+            if (tooltipEl) tooltipEl.textContent = text;
+            return;
+          }
+
+          if (currency !== activeTab) {
+            row.style.display = "none";
+            return;
+          }
+
+          row.style.display = "";
+          const prefix = displayUnit === "USD" ? "$" : "Bs.";
+          const text = `${prefix} ${formatNumber(roundUp(amount * baseRate), RATE_DECIMALS)}`;
+          if (valueEl) {
+            valueEl.textContent = text;
+            valueEl.title = text;
+          }
+          if (tooltipEl) tooltipEl.textContent = text;
+        });
+      }
+
+      function setActiveTab(tab) {
+        activeTab = tab;
+        document.getElementById("converter-symbol").textContent = SYMBOLS[tab];
+
+        document.querySelectorAll(".tab-button").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.tab === tab);
+        });
+
+        updateRates();
+      }
+
+      async function init() {
+        const [bcvUsd, bcvEur, paralelo] = await Promise.all([
+          fetchBcvUsd(),
+          fetchBcvEur(),
+          fetchParaleloRate(),
+        ]);
+
+        ratesData = { bcvUsd, bcvEur, binance: paralelo };
+        updateUI();
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        init();
+
+        document.querySelectorAll(".tab-button").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const tab = btn.dataset.tab;
+            if (VALID_TABS.has(tab)) setActiveTab(tab);
+          });
+        });
+
+        const input = document.getElementById("converter-input");
+        input.addEventListener("input", () => {
+          const raw = input.value;
+          const formatted = sanitizeInput(raw);
+          const lengthDiff = formatted.length - raw.length;
+          const selectionEnd = (input.selectionEnd ?? raw.length) + lengthDiff;
+
+          input.value = formatted;
+          input.setSelectionRange(selectionEnd, selectionEnd);
+          updateRates();
+        });
+
+        input.addEventListener("blur", () => {
+          if (input.value === "") {
+            updateRates();
+            return;
+          }
+
+          const parsed = parseDisplayValue(input.value);
+          if (isNaN(parsed) || parsed < 0) {
+            updateRates();
+            return;
+          }
+
+          const raw = input.value;
+          const hasDecimal = raw.includes(",");
+          const decimalPlaces = hasDecimal
+            ? Math.min(raw.split(",")[1].length, RATE_DECIMALS)
+            : 0;
+
+          input.value = formatNumber(parsed, decimalPlaces);
+          updateRates();
+        });
+
+        document
+          .getElementById("converter-reset")
+          .addEventListener("click", () => {
+            input.value = "";
+            input.focus();
+            updateRates();
+          });
+      });
+    </script>
+  </body>
+</html>
