@@ -123,6 +123,10 @@ function initConverter(): void {
       if (!data) return;
 
       if (activeTab === "BS") {
+        if (data.id === "bcv-to-usdt" || data.id === "usdt-to-bcv") {
+          row.style.display = "none";
+          return;
+        }
         row.style.display = "";
         const converted =
           data.baseRate > 0 ? roundUp(amount / data.baseRate) : 0;
