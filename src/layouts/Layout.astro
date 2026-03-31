@@ -1,5 +1,8 @@
 ---
 import "../styles/global.css";
+
+const cloudflareWebAnalyticsToken = import.meta.env
+  .PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
 ---
 
 <!doctype html>
@@ -20,5 +23,16 @@ import "../styles/global.css";
     class="bg-background text-foreground h-dvh min-h-screen overflow-hidden antialiased"
   >
     <slot />
+    {
+      cloudflareWebAnalyticsToken && (
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({
+            token: cloudflareWebAnalyticsToken,
+          })}
+        />
+      )
+    }
   </body>
 </html>

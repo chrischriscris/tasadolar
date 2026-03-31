@@ -12,7 +12,11 @@ Guidance for AI coding agents working in this repository.
 
 ## Stack
 
-Astro 5 (static), Tailwind v4 (Vite plugin), Vercel. Path alias: `@/*` → `./src/*`.
+Astro 6 (server), Tailwind v4 (Vite plugin), Cloudflare Workers. Path alias: `@/*` → `./src/*`.
+
+## Deployment
+
+`astro.config.mjs` uses the Cloudflare adapter. `wrangler.jsonc` is the deployment entrypoint and enables Cloudflare observability.
 
 ## Architecture
 
