@@ -6,6 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:preview": "npm run build && wrangler deploy --dry-run",
+    "deploy:types": "wrangler types",
     "astro": "astro",
     "prepare": "lefthook install",
     "generate-types": "wrangler types"
