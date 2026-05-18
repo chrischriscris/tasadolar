@@ -1,0 +1,63 @@
+{
+  "fill": {
+    "linear-gradient": [
+      "display-p3:0.22552,0.29913,0.33750,1.00000",
+      "display-p3:0.11839,0.21295,0.25975,1.00000"
+    ],
+    "orientation": {
+      "start": {
+        "x": 0.5,
+        "y": 0
+      },
+      "stop": {
+        "x": 0.5,
+        "y": 0.7
+      }
+    }
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "blend-mode": "multiply",
+          "fill": {
+            "linear-gradient": [
+              "display-p3:0.37906,0.70834,0.68357,0.95384",
+              "display-p3:0.24658,0.68807,0.65510,1.00000"
+            ],
+            "orientation": {
+              "start": {
+                "x": 0.5,
+                "y": 0
+              },
+              "stop": {
+                "x": 0.5,
+                "y": 0.7
+              }
+            }
+          },
+          "glass": true,
+          "hidden": false,
+          "image-name": "attach_money_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+          "name": "attach_money_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24",
+          "position": {
+            "scale": 40,
+            "translation-in-points": [0, 0]
+          }
+        }
+      ],
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.5
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.5
+      }
+    }
+  ],
+  "supported-platforms": {
+    "circles": ["watchOS"],
+    "squares": "shared"
+  }
+}
