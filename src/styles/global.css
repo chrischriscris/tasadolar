@@ -67,6 +67,15 @@
   }
 }
 
+html[data-active-tab="USD"]
+  [data-rate-row][data-currency]:not([data-currency="USD"]),
+html[data-active-tab="EUR"]
+  [data-rate-row][data-currency]:not([data-currency="EUR"]),
+html[data-active-tab="BS"] [data-rate-row="bcv-to-usdt"],
+html[data-active-tab="BS"] [data-rate-row="usdt-to-bcv"] {
+  display: none;
+}
+
 @layer utilities {
   @keyframes sync-bar {
     0% {

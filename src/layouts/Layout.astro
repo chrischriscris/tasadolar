@@ -28,7 +28,7 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
 ---
 
 <!doctype html>
-<html lang="es-VE" class="dark h-full overflow-hidden">
+<html lang="es-VE" class="dark h-full overflow-hidden" data-active-tab="USD">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -80,6 +80,17 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
+    <script is:inline>
+      try {
+        const stored = localStorage.getItem("tasadolar:converter");
+        const activeTab = stored ? JSON.parse(stored).activeTab : "USD";
+        if (["USD", "EUR", "BS"].includes(activeTab)) {
+          document.documentElement.dataset.activeTab = activeTab;
+        }
+      } catch {
+        document.documentElement.dataset.activeTab = "USD";
+      }
+    </script>
     <link
       rel="apple-touch-startup-image"
       href="/splash/apple-splash-640x1136.png"

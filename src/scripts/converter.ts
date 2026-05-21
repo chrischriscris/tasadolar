@@ -214,6 +214,7 @@ function initConverter(): void {
   };
 
   const render = (): void => {
+    document.documentElement.dataset.activeTab = state.activeTab;
     symbolEl.textContent = SYMBOLS[state.activeTab];
     setActiveTabStyles(state.activeTab);
     renderInput();
