@@ -8,6 +8,7 @@ import {
 
 const SYMBOLS: Record<Tab, string> = { USD: "$", EUR: "€", BS: "Bs." };
 const VALID_TABS = new Set(["USD", "EUR", "BS"] as const);
+const STORAGE_KEY = "tasadolar:converter";
 
 type Tab = "USD" | "EUR" | "BS";
 
@@ -31,6 +32,11 @@ type ConverterState = {
   amount: number | null;
   inputText: string;
   inputFocused: boolean;
+};
+
+type StoredConverterState = {
+  activeTab?: string;
+  inputText?: string;
 };
 
 function isTab(value: string | undefined): value is Tab {
@@ -99,6 +105,44 @@ function setActiveTabStyles(activeTab: Tab): void {
   });
 }
 
+function loadStoredState(): Pick<
+  ConverterState,
+  "activeTab" | "amount" | "inputText"
+> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return { activeTab: "USD", amount: null, inputText: "" };
+
+    const parsed = JSON.parse(stored) as StoredConverterState;
+    const inputText = sanitizeEditableNumber(
+      parsed.inputText ?? "",
+      RATE_DECIMALS,
+    );
+
+    return {
+      activeTab: isTab(parsed.activeTab) ? parsed.activeTab : "USD",
+      amount: parseDisplayNumber(inputText),
+      inputText,
+    };
+  } catch {
+    return { activeTab: "USD", amount: null, inputText: "" };
+  }
+}
+
+function saveState(state: ConverterState): void {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        activeTab: state.activeTab,
+        inputText: state.inputText,
+      } satisfies StoredConverterState),
+    );
+  } catch {
+    // Ignore storage failures in private mode or restricted webviews.
+  }
+}
+
 function initConverter(): void {
   const input = document.getElementById(
     "converter-input",
@@ -114,10 +158,9 @@ function initConverter(): void {
   const rateRows = Array.from(rows)
     .map(readRateRow)
     .filter((row): row is RateRow => row !== null);
+  const storedState = loadStoredState();
   const state: ConverterState = {
-    activeTab: "USD",
-    amount: null,
-    inputText: "",
+    ...storedState,
     inputFocused: document.activeElement === input,
   };
 
@@ -186,6 +229,7 @@ function initConverter(): void {
     if (!isTab(tab)) return;
 
     state.activeTab = tab;
+    saveState(state);
     render();
   });
 
@@ -202,6 +246,7 @@ function initConverter(): void {
     state.amount = parseDisplayNumber(text);
     input.value = text;
     input.setSelectionRange(selectionEnd, selectionEnd);
+    saveState(state);
     render();
   });
 
@@ -215,6 +260,7 @@ function initConverter(): void {
   input.addEventListener("blur", () => {
     state.inputFocused = false;
     state.amount = parseDisplayNumber(state.inputText);
+    saveState(state);
     render();
   });
 
@@ -224,6 +270,7 @@ function initConverter(): void {
       state.inputText = "";
       state.inputFocused = true;
       input.focus();
+      saveState(state);
       render();
     });
   });
