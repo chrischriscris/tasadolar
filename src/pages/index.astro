@@ -7,13 +7,84 @@ import RatesList from "@/components/RatesList.astro";
 import CurrencyTabs from "@/components/CurrencyTabs.astro";
 import ConverterInput from "@/components/ConverterInput.astro";
 import { fetchAllRates } from "@/lib/rates";
+import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
 
 // All rate fetching + computation lives in src/lib/rates.ts
 // See that module for architecture notes and how to modify sources.
 const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
+
+const bcvUsd = cards.find((card) => card.id === "bcv-usd");
+const binanceUsd = cards.find((card) => card.id === "binance-usd");
+const bcvEur = cards.find((card) => card.id === "bcv-eur");
+
+const formatRate = (value: number | null | undefined) =>
+  value === null || value === undefined
+    ? "no disponible"
+    : `Bs. ${formatNumber(value, RATE_DECIMALS)}`;
+
+const pageTitle = `Dólar BCV y Binance hoy: USD/USDT a bolívares | TasaDolar`;
+const pageDescription = `Convertidor de dólares, USDT y bolívares en Venezuela. Dólar BCV ${formatRate(bcvUsd?.value)}, Binance USDT ${formatRate(binanceUsd?.value)} y euro BCV ${formatRate(bcvEur?.value)}.`;
+const siteUrl =
+  import.meta.env.PUBLIC_SITE_URL ?? Astro.site?.href ?? Astro.url.origin;
+const pageUrl = new URL("/", siteUrl).href;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "TasaDolar",
+    url: pageUrl,
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    inLanguage: "es-VE",
+    description: pageDescription,
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    featureList: [
+      "Convertidor de USD a bolívares",
+      "Convertidor de USDT a bolívares",
+      "Convertidor de bolívares a dólares",
+      "Tasa dólar BCV",
+      "Tasa Binance P2P USDT/VES",
+      "Tasa euro BCV",
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "¿Cómo convertir dólares a bolívares?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Escribe el monto en USD o USDT en el convertidor y TasaDolar calcula el equivalente en bolívares usando la tasa BCV o Binance disponible.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "¿Cómo convertir bolívares a dólares o USDT?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Selecciona BS, introduce el monto en bolívares y el convertidor muestra su equivalente en USD, USDT, BCV y euro cuando las tasas están disponibles.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "¿Qué tasas muestra TasaDolar?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "TasaDolar muestra dólar BCV, USDT/VES de Binance P2P, euro BCV, brecha cambiaria y conversiones entre BCV y USDT.",
+        },
+      },
+    ],
+  },
+];
 ---
 
-<Layout>
+<Layout title={pageTitle} description={pageDescription} jsonLd={jsonLd}>
   <div class="mx-auto flex h-full min-h-0 max-w-md flex-col overflow-hidden">
     <Header />
 

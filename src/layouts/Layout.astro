@@ -3,10 +3,32 @@ import "../styles/global.css";
 
 const cloudflareWebAnalyticsToken = import.meta.env
   .PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonicalPath?: string;
+  image?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title = "TasaDolar | Convertidor USD, USDT y bolívares en Venezuela",
+  description = "Consulta la tasa del dólar BCV, Binance USDT y euro BCV en Venezuela. Convierte USD, USDT y bolívares con tasas actualizadas.",
+  canonicalPath = "/",
+  image = "/icons/icon-512x512.png",
+  jsonLd,
+} = Astro.props;
+
+const siteUrl =
+  import.meta.env.PUBLIC_SITE_URL ?? Astro.site?.href ?? Astro.url.origin;
+const canonicalUrl = new URL(canonicalPath, siteUrl).href;
+const imageUrl = new URL(image, siteUrl).href;
+const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
 ---
 
 <!doctype html>
-<html lang="en" class="dark h-full overflow-hidden">
+<html lang="es-VE" class="dark h-full overflow-hidden">
   <head>
     <meta charset="UTF-8" />
     <meta
@@ -35,10 +57,29 @@ const cloudflareWebAnalyticsToken = import.meta.env
     <link rel="icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href={canonicalUrl} />
     <meta name="theme-color" content="#0a0a0a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="TasaDolar" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_VE" />
+    <meta property="og:site_name" content="TasaDolar" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <meta
+      property="og:image:alt"
+      content="TasaDolar convertidor de dólares, USDT y bolívares"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
     <link
       rel="apple-touch-startup-image"
       href="/splash/apple-splash-640x1136.png"
@@ -114,9 +155,10 @@ const cloudflareWebAnalyticsToken = import.meta.env
       href="/splash/apple-splash-2048x2732.png"
       media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
     />
-    <title>TasaDolar - Tasas de Cambio</title>
+    <title>{title}</title>
     <link rel="preconnect" href="https://flagcdn.com" />
     <link rel="preconnect" href="https://public.bnbstatic.com" />
+    {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
   </head>
   <body
     class="bg-background text-foreground h-dvh min-h-screen overflow-hidden antialiased"
