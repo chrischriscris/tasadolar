@@ -122,6 +122,14 @@ const cloudflareWebAnalyticsToken = import.meta.env
     class="bg-background text-foreground h-dvh min-h-screen overflow-hidden antialiased"
   >
     <slot />
+    <div
+      data-stale-banner
+      hidden
+      role="status"
+      class="fixed right-3 bottom-3 left-3 z-[100] rounded-xl border border-yellow-400/20 bg-yellow-950/95 px-3 py-2 text-center text-xs font-medium text-yellow-100 shadow-lg backdrop-blur-sm"
+    >
+      Sin conexión. Mostrando las últimas tasas guardadas.
+    </div>
     {
       cloudflareWebAnalyticsToken && (
         <script
@@ -134,10 +142,24 @@ const cloudflareWebAnalyticsToken = import.meta.env
       )
     }
     <script is:inline>
+      const staleBanner = document.querySelector("[data-stale-banner]");
+
+      const setStaleBannerVisible = (visible) => {
+        if (staleBanner) staleBanner.hidden = !visible;
+      };
+
+      setStaleBannerVisible(!navigator.onLine);
+      window.addEventListener("online", () => setStaleBannerVisible(false));
+      window.addEventListener("offline", () => setStaleBannerVisible(true));
+
       if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/sw.js");
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data?.type === "cached-page-used") {
+            setStaleBannerVisible(true);
+          }
         });
+
+        navigator.serviceWorker.register("/sw.js");
       }
     </script>
   </body>

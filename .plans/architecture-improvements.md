@@ -20,6 +20,7 @@ Concrete follow-ups from the architecture review. Keep this list practical: do n
 - [x] Add a tiny service worker for offline reopen using the latest cached page and static assets.
 - [x] Add native-like manifest fields (`id`, `display_override`, categories, language, shortcut).
 - [x] Add iOS startup images for common iPhone/iPad portrait splash screens.
+- [x] Show a stale-data banner when offline or when the service worker serves a cached page.
 - [ ] Self-host rate card icons locally to remove remote DNS/TLS variance from `flagcdn.com` and `public.bnbstatic.com`.
 - [x] Cache converter DOM references if input rendering becomes hot enough to matter.
 - [x] Reuse/cached `Intl.NumberFormat` for common 2-decimal formatting.
