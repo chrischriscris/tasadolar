@@ -6,6 +6,10 @@ const APP_SHELL = [
   "/apple-touch-icon.png",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
+  "/splash/apple-splash-1170x2532.png",
+  "/splash/apple-splash-1179x2556.png",
+  "/splash/apple-splash-1284x2778.png",
+  "/splash/apple-splash-1290x2796.png",
 ];
 
 self.addEventListener("install", (event) => {
