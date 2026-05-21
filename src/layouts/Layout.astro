@@ -188,6 +188,7 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
       const refreshIndicator = document.querySelector(
         "[data-refresh-indicator]",
       );
+      const freshReloadKey = "tasadolar:fresh-reload-used";
       let reloadPending = false;
 
       const setStaleBannerVisible = (visible) => {
@@ -212,8 +213,13 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
       };
 
       const reloadWithFreshPage = () => {
-        if (reloadPending) return;
+        if (reloadPending || sessionStorage.getItem(freshReloadKey)) {
+          setRefreshIndicatorVisible(false);
+          return;
+        }
+
         reloadPending = true;
+        sessionStorage.setItem(freshReloadKey, "true");
         setRefreshIndicatorVisible(true);
         window.setTimeout(() => window.location.reload(), 150);
       };
@@ -243,6 +249,7 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
           }
 
           if (event.data?.type === "fresh-page-current") {
+            sessionStorage.removeItem(freshReloadKey);
             setRefreshIndicatorVisible(false);
           }
 
