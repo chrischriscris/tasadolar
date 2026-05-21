@@ -1,5 +1,12 @@
+import {
+  formatNumber,
+  parseDisplayNumber,
+  RATE_DECIMALS,
+  roundUp,
+  sanitizeEditableNumber,
+} from "@/lib/number-format";
+
 const SYMBOLS: Record<Tab, string> = { USD: "$", EUR: "€", BS: "Bs." };
-const RATE_DECIMALS = 2;
 const VALID_TABS = new Set(["USD", "EUR", "BS"] as const);
 
 type Tab = "USD" | "EUR" | "BS";
@@ -11,26 +18,15 @@ type RateRowData = {
   displayUnit: "BS" | "USD";
 };
 
+type ConverterState = {
+  activeTab: Tab;
+  amount: number | null;
+  inputText: string;
+  inputFocused: boolean;
+};
+
 function isTab(value: string | undefined): value is Tab {
   return value !== undefined && VALID_TABS.has(value as Tab);
-}
-
-function roundUp(value: number, decimals = RATE_DECIMALS): number {
-  if (!isFinite(value)) return 0;
-  const factor = 10 ** decimals;
-  return Math.ceil(value * factor) / factor;
-}
-
-function formatNumber(value: number, decimals: number): string {
-  return new Intl.NumberFormat("es-VE", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
-}
-
-function parseDisplayValue(str: string): number {
-  const normalized = str.replace(/\./g, "").replace(",", ".");
-  return parseFloat(normalized);
 }
 
 function readRateRowData(row: HTMLElement): RateRowData | null {
@@ -53,30 +49,6 @@ function formatRateText(unit: "BS" | "USD", value: number): string {
   return `${prefix} ${formatNumber(roundUp(value), RATE_DECIMALS)}`;
 }
 
-function sanitizeInput(raw: string): string {
-  const cleaned = raw.replace(/[^0-9.,]/g, "");
-  const lastSeparatorIndex = Math.max(
-    cleaned.lastIndexOf(","),
-    cleaned.lastIndexOf("."),
-  );
-  const hasTrailingSeparator =
-    lastSeparatorIndex !== -1 && lastSeparatorIndex === cleaned.length - 1;
-
-  const intPartRaw =
-    lastSeparatorIndex === -1 ? cleaned : cleaned.slice(0, lastSeparatorIndex);
-  const decPartRaw =
-    lastSeparatorIndex === -1
-      ? undefined
-      : cleaned.slice(lastSeparatorIndex + 1);
-
-  const intPart = intPartRaw.replace(/[.,]/g, "");
-  const decPart = decPartRaw ? decPartRaw.slice(0, RATE_DECIMALS) : undefined;
-  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  if (hasTrailingSeparator) return `${formattedInt},`;
-  return decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
-}
-
 function setRateText(id: string, text: string): void {
   const valueEl = document.querySelector<HTMLElement>(
     `[data-rate-value="${id}"]`,
@@ -88,6 +60,7 @@ function setRateText(id: string, text: string): void {
   if (!valueEl) return;
   valueEl.textContent = text;
   valueEl.title = text;
+  valueEl.setAttribute("aria-label", text);
   if (tooltipEl) tooltipEl.textContent = text;
 }
 
@@ -116,26 +89,29 @@ function initConverter(): void {
 
   if (!input || !symbolEl || rows.length === 0) return;
 
-  let activeTab: Tab = "USD";
-
-  const getAmount = (): number => {
-    const parsed = parseDisplayValue(input.value);
-    return isNaN(parsed) || parsed < 0 ? 1 : parsed;
+  const rateRows = Array.from(rows)
+    .map((row) => ({ element: row, data: readRateRowData(row) }))
+    .filter(
+      (row): row is { element: HTMLElement; data: RateRowData } =>
+        row.data !== null,
+    );
+  const state: ConverterState = {
+    activeTab: "USD",
+    amount: null,
+    inputText: "",
+    inputFocused: document.activeElement === input,
   };
 
   const updateRates = (): void => {
-    const amount = getAmount();
+    const amount = state.amount ?? 1;
 
-    rows.forEach((row) => {
-      const data = readRateRowData(row);
-      if (!data) return;
-
-      if (activeTab === "BS") {
+    rateRows.forEach(({ element, data }) => {
+      if (state.activeTab === "BS") {
         if (data.id === "bcv-to-usdt" || data.id === "usdt-to-bcv") {
-          row.style.display = "none";
+          element.style.display = "none";
           return;
         }
-        row.style.display = "";
+        element.style.display = "";
         const converted =
           data.baseRate > 0 ? roundUp(amount / data.baseRate) : 0;
         const unit = data.currency === "EUR" ? "€" : "$";
@@ -146,12 +122,12 @@ function initConverter(): void {
         return;
       }
 
-      if (data.currency !== activeTab) {
-        row.style.display = "none";
+      if (data.currency !== state.activeTab) {
+        element.style.display = "none";
         return;
       }
 
-      row.style.display = "";
+      element.style.display = "";
       setRateText(
         data.id,
         formatRateText(data.displayUnit, amount * data.baseRate),
@@ -159,10 +135,20 @@ function initConverter(): void {
     });
   };
 
-  const setActiveTab = (tab: Tab): void => {
-    activeTab = tab;
-    symbolEl.textContent = SYMBOLS[tab];
-    setActiveTabStyles(tab);
+  const renderInput = (): void => {
+    const nextValue = state.inputFocused
+      ? state.inputText
+      : state.amount === null
+        ? ""
+        : formatNumber(state.amount, RATE_DECIMALS);
+
+    if (input.value !== nextValue) input.value = nextValue;
+  };
+
+  const render = (): void => {
+    symbolEl.textContent = SYMBOLS[state.activeTab];
+    setActiveTabStyles(state.activeTab);
+    renderInput();
     updateRates();
   };
 
@@ -174,51 +160,50 @@ function initConverter(): void {
     const tab = tabButton.dataset.tab;
     if (!isTab(tab)) return;
 
-    setActiveTab(tab);
+    state.activeTab = tab;
+    render();
   });
 
   input.addEventListener("input", () => {
     const raw = input.value;
-    const formatted = sanitizeInput(raw);
-    const lengthDiff = formatted.length - raw.length;
-    const selectionEnd = (input.selectionEnd ?? raw.length) + lengthDiff;
+    const text = sanitizeEditableNumber(raw, RATE_DECIMALS);
+    const lengthDiff = text.length - raw.length;
+    const selectionEnd = Math.max(
+      0,
+      (input.selectionEnd ?? raw.length) + lengthDiff,
+    );
 
-    input.value = formatted;
+    state.inputText = text;
+    state.amount = parseDisplayNumber(text);
+    input.value = text;
     input.setSelectionRange(selectionEnd, selectionEnd);
-    updateRates();
+    render();
+  });
+
+  input.addEventListener("focus", () => {
+    state.inputFocused = true;
+    state.inputText =
+      state.amount === null ? "" : sanitizeEditableNumber(input.value);
+    render();
   });
 
   input.addEventListener("blur", () => {
-    if (input.value === "") {
-      updateRates();
-      return;
-    }
-
-    const parsed = getAmount();
-    if (isNaN(parsed) || parsed < 0) {
-      updateRates();
-      return;
-    }
-
-    const raw = input.value;
-    const hasDecimal = raw.includes(",");
-    const decimalPlaces = hasDecimal
-      ? Math.min(raw.split(",")[1].length, RATE_DECIMALS)
-      : 0;
-
-    input.value = formatNumber(parsed, decimalPlaces);
-    updateRates();
+    state.inputFocused = false;
+    state.amount = parseDisplayNumber(state.inputText);
+    render();
   });
 
   resetButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      input.value = "";
+      state.amount = null;
+      state.inputText = "";
+      state.inputFocused = true;
       input.focus();
-      updateRates();
+      render();
     });
   });
 
-  setActiveTab(activeTab);
+  render();
 }
 
 initConverter();

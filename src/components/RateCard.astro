@@ -1,4 +1,6 @@
 ---
+import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
+
 interface Rate {
   id: string;
   title: string;
@@ -14,13 +16,6 @@ interface Props {
 }
 
 const { rate } = Astro.props;
-const RATE_DECIMALS = 2;
-
-const formatNumber = (value: number, decimals: number): string =>
-  new Intl.NumberFormat("es-VE", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value);
 
 const getIconUrl = (iconType: string): string => {
   switch (iconType) {

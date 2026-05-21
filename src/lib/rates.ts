@@ -30,6 +30,7 @@
 import type { Rate } from "./types";
 import { fetchBcvUsd, fetchBcvEur } from "./bcv";
 import { fetchBinanceRate } from "./binance";
+import { roundUp } from "./number-format";
 
 /** Shape expected by RateCard.astro */
 export interface RateCardData {
@@ -58,12 +59,6 @@ export interface AllRates {
     binance: Rate;
     bcvEur: Rate;
   };
-}
-
-function roundUp(value: number, decimals = 2): number {
-  if (!isFinite(value)) return 0;
-  const factor = 10 ** decimals;
-  return Math.ceil(value * factor) / factor;
 }
 
 /** Format an ISO date into a relative Spanish "last updated" string */
