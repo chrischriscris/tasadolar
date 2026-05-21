@@ -251,9 +251,12 @@ function initConverter(): void {
   });
 
   input.addEventListener("focus", () => {
+    const wasFocused = state.inputFocused;
     state.inputFocused = true;
-    state.inputText =
-      state.amount === null ? "" : sanitizeEditableNumber(input.value);
+    if (!wasFocused) {
+      state.amount = null;
+      state.inputText = "";
+    }
     render();
   });
 
