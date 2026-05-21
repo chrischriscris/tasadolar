@@ -21,6 +21,15 @@ export function parseDisplayNumber(value: string): number | null {
   return isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
 
+function normalizeIntegerDigits(
+  value: string,
+  hasDecimalSeparator: boolean,
+): string {
+  const normalized = value.replace(/^0+(?=\d)/, "");
+  if (normalized !== "") return normalized;
+  return hasDecimalSeparator ? "0" : "";
+}
+
 export function sanitizeEditableNumber(
   value: string,
   decimals = RATE_DECIMALS,
@@ -35,9 +44,13 @@ export function sanitizeEditableNumber(
     lastSeparatorIndex === -1 ? cleaned : cleaned.slice(0, lastSeparatorIndex);
   const decimalRaw =
     lastSeparatorIndex === -1 ? "" : cleaned.slice(lastSeparatorIndex + 1);
-  const integer = integerRaw.replace(/[.,]/g, "");
+  const hasDecimalSeparator = lastSeparatorIndex !== -1;
+  const integer = normalizeIntegerDigits(
+    integerRaw.replace(/[.,]/g, ""),
+    hasDecimalSeparator,
+  );
   const decimal = decimalRaw.replace(/[.,]/g, "").slice(0, decimals);
 
-  if (lastSeparatorIndex === -1) return integer;
+  if (!hasDecimalSeparator) return integer;
   return `${integer},${decimal}`;
 }
