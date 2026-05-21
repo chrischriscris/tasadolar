@@ -38,6 +38,13 @@ function pickByFuente(
   return data.find((d) => d.fuente === fuente);
 }
 
+function readValidPrice(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Invalid rate value: ${value}`);
+  }
+  return value;
+}
+
 /** Fetch the official BCV USD rate */
 export async function fetchBcvUsd(): Promise<Rate> {
   return fetchDolarByFuente("oficial", "BCV");
@@ -57,7 +64,7 @@ async function fetchDolarByFuente(
     const result = pickByFuente(data, fuente);
     if (!result) throw new Error(`No '${fuente}' entry in dolares response`);
     return {
-      price: result.promedio,
+      price: readValidPrice(result.promedio),
       updatedAt: result.fechaActualizacion,
       source,
     };
@@ -75,7 +82,7 @@ export async function fetchBcvEur(): Promise<Rate> {
     const oficial = pickByFuente(data, "oficial");
     if (!oficial) throw new Error("No 'oficial' entry in euros response");
     return {
-      price: oficial.promedio,
+      price: readValidPrice(oficial.promedio),
       updatedAt: oficial.fechaActualizacion,
       source: "BCV",
     };

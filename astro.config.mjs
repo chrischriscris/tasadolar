@@ -7,6 +7,9 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   output: "server",
   adapter: cloudflare(),
+  image: {
+    domains: ["flagcdn.com", "public.bnbstatic.com"],
+  },
   vite: {
     plugins: [tailwindcss()],
   },

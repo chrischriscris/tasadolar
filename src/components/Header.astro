@@ -1,4 +1,6 @@
 ---
+import { Image } from "astro:assets";
+
 interface Props {
   title?: string;
 }
@@ -10,11 +12,12 @@ const { title = "TasaDolar" } = Astro.props;
   class="sticky top-0 z-50 flex h-16 items-center justify-between px-5 backdrop-blur-xl"
 >
   <div class="flex items-center gap-3">
-    <img
+    <Image
       src="/icons/icon-192x192.png"
       alt=""
       width="40"
       height="40"
+      loading="eager"
       class="h-10 w-10 object-cover"
       aria-hidden="true"
     />

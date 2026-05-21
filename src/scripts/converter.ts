@@ -1,8 +1,8 @@
 import {
   formatNumber,
+  ceilToDecimals,
   parseDisplayNumber,
   RATE_DECIMALS,
-  roundUp,
   sanitizeEditableNumber,
 } from "@/lib/number-format";
 
@@ -16,6 +16,7 @@ type RateRowData = {
   currency: Tab;
   baseRate: number;
   displayUnit: "BS" | "USD";
+  available: boolean;
 };
 
 type ConverterState = {
@@ -30,10 +31,11 @@ function isTab(value: string | undefined): value is Tab {
 }
 
 function readRateRowData(row: HTMLElement): RateRowData | null {
-  const { rateRow, currency, baseRate, displayUnit } = row.dataset;
+  const { rateRow, currency, baseRate, displayUnit, rateAvailable } =
+    row.dataset;
   if (!rateRow || !isTab(currency)) return null;
 
-  const parsedBaseRate = roundUp(parseFloat(baseRate ?? "0"));
+  const parsedBaseRate = ceilToDecimals(parseFloat(baseRate ?? "0"));
   const parsedDisplayUnit = displayUnit === "USD" ? "USD" : "BS";
 
   return {
@@ -41,12 +43,13 @@ function readRateRowData(row: HTMLElement): RateRowData | null {
     currency,
     baseRate: parsedBaseRate,
     displayUnit: parsedDisplayUnit,
+    available: rateAvailable !== "false" && parsedBaseRate > 0,
   };
 }
 
 function formatRateText(unit: "BS" | "USD", value: number): string {
   const prefix = unit === "USD" ? "$" : "Bs.";
-  return `${prefix} ${formatNumber(roundUp(value), RATE_DECIMALS)}`;
+  return `${prefix} ${formatNumber(ceilToDecimals(value), RATE_DECIMALS)}`;
 }
 
 function setRateText(id: string, text: string): void {
@@ -112,8 +115,12 @@ function initConverter(): void {
           return;
         }
         element.style.display = "";
+        if (!data.available) {
+          setRateText(data.id, "No disponible");
+          return;
+        }
         const converted =
-          data.baseRate > 0 ? roundUp(amount / data.baseRate) : 0;
+          data.baseRate > 0 ? ceilToDecimals(amount / data.baseRate) : 0;
         const unit = data.currency === "EUR" ? "€" : "$";
         setRateText(
           data.id,
@@ -128,6 +135,10 @@ function initConverter(): void {
       }
 
       element.style.display = "";
+      if (!data.available) {
+        setRateText(data.id, "No disponible");
+        return;
+      }
       setRateText(
         data.id,
         formatRateText(data.displayUnit, amount * data.baseRate),

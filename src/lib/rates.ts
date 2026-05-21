@@ -30,17 +30,22 @@
 import type { Rate } from "./types";
 import { fetchBcvUsd, fetchBcvEur } from "./bcv";
 import { fetchBinanceRate } from "./binance";
-import { roundUp } from "./number-format";
+import { ceilToDecimals } from "./number-format";
+
+const CACHE_TTL_MS = 60_000;
+
+let cachedRates: { expiresAt: number; data: AllRates } | undefined;
 
 /** Shape expected by RateCard.astro */
 export interface RateCardData {
   id: string;
   title: string;
-  value: number;
+  value: number | null;
   change: number; // TODO: implement daily change tracking (needs historical data)
   icon: "bcv" | "us" | "binance" | "eu";
   currency: "USD" | "EUR" | "BS";
   displayUnit: "BS" | "USD";
+  error?: string;
 }
 
 export interface AllRates {
@@ -59,6 +64,12 @@ export interface AllRates {
     binance: Rate;
     bcvEur: Rate;
   };
+}
+
+function getRatePrice(rate: Rate): number | null {
+  if (rate.error || !Number.isFinite(rate.price) || rate.price <= 0)
+    return null;
+  return ceilToDecimals(rate.price);
 }
 
 /** Format an ISO date into a relative Spanish "last updated" string */
@@ -92,6 +103,9 @@ function formatLastUpdated(dates: (string | undefined)[]): string {
  * ```
  */
 export async function fetchAllRates(): Promise<AllRates> {
+  const now = Date.now();
+  if (cachedRates && cachedRates.expiresAt > now) return cachedRates.data;
+
   // -- Fetch all sources in parallel ----------------------------------------
   const [bcvUsd, binance, bcvEur] = await Promise.all([
     fetchBcvUsd(),
@@ -99,18 +113,18 @@ export async function fetchAllRates(): Promise<AllRates> {
     fetchBcvEur(),
   ]);
 
-  // -- Extract prices (0 if failed) -----------------------------------------
-  const bcvUsdPrice = roundUp(bcvUsd.price ?? 0);
-  const binancePrice = roundUp(binance.price ?? 0);
-  const bcvEurPrice = roundUp(bcvEur.price ?? 0);
+  // -- Extract prices (null if failed) --------------------------------------
+  const bcvUsdPrice = getRatePrice(bcvUsd);
+  const binancePrice = getRatePrice(binance);
+  const bcvEurPrice = getRatePrice(bcvEur);
   const bcvToUsdtRate =
-    bcvUsdPrice > 0 && binancePrice > 0
-      ? roundUp(bcvUsdPrice / binancePrice)
-      : 0;
+    bcvUsdPrice !== null && binancePrice !== null
+      ? ceilToDecimals(bcvUsdPrice / binancePrice)
+      : null;
   const usdtToBcvRate =
-    bcvUsdPrice > 0 && binancePrice > 0
-      ? roundUp(binancePrice / bcvUsdPrice)
-      : 0;
+    bcvUsdPrice !== null && binancePrice !== null
+      ? ceilToDecimals(binancePrice / bcvUsdPrice)
+      : null;
 
   // -- Build rate cards for RateCard.astro -----------------------------------
   // NOTE: `change` is hardcoded to 0 for now. To implement daily change %,
@@ -125,6 +139,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "bcv",
       currency: "USD",
       displayUnit: "BS",
+      error: bcvUsd.error,
     },
     {
       id: "binance-usd",
@@ -134,6 +149,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "binance",
       currency: "USD",
       displayUnit: "BS",
+      error: binance.error,
     },
     {
       id: "bcv-to-usdt",
@@ -143,6 +159,10 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "bcv",
       currency: "USD",
       displayUnit: "USD",
+      error:
+        bcvUsdPrice === null || binancePrice === null
+          ? "BCV or Binance unavailable"
+          : undefined,
     },
     {
       id: "usdt-to-bcv",
@@ -152,6 +172,10 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "binance",
       currency: "USD",
       displayUnit: "USD",
+      error:
+        bcvUsdPrice === null || binancePrice === null
+          ? "BCV or Binance unavailable"
+          : undefined,
     },
     {
       id: "bcv-eur",
@@ -161,12 +185,13 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "eu",
       currency: "EUR",
       displayUnit: "BS",
+      error: bcvEur.error,
     },
   ];
 
   // -- Compute exchange gap ---------------------------------------------------
   const exchangeGapPercentage =
-    bcvUsdPrice > 0 && binancePrice > 0
+    bcvUsdPrice !== null && binancePrice !== null
       ? Number((((binancePrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2))
       : 0;
 
@@ -177,10 +202,13 @@ export async function fetchAllRates(): Promise<AllRates> {
     bcvEur.updatedAt,
   ]);
 
-  return {
+  const data = {
     cards,
     exchangeGapPercentage,
     lastUpdatedText,
     raw: { bcvUsd, binance, bcvEur },
   };
+
+  cachedRates = { expiresAt: now + CACHE_TTL_MS, data };
+  return data;
 }

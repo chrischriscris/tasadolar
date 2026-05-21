@@ -45,7 +45,15 @@ async function fetchP2PAds(
     throw new Error(`No P2P ${tradeType} ads returned`);
   }
 
-  return data.data.map((ad) => parseFloat(ad.adv.price));
+  const prices = data.data
+    .map((ad) => Number(ad.adv.price))
+    .filter((price) => Number.isFinite(price) && price > 0);
+
+  if (prices.length === 0) {
+    throw new Error(`No valid P2P ${tradeType} prices returned`);
+  }
+
+  return prices;
 }
 
 /** Fetch mid-market USDT/VES rate from Binance P2P */

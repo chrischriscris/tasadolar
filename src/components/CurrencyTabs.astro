@@ -12,6 +12,8 @@ const tabs = ["USD", "EUR", "BS"] as const;
   {
     tabs.map((tab) => (
       <button
+        type="button"
+        aria-pressed={activeTab === tab}
         class={`min-w-20 rounded-lg px-6 py-1 text-sm font-semibold transition-all ${
           activeTab === tab
             ? "bg-teal text-primary-foreground"

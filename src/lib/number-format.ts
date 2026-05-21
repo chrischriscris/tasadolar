@@ -1,6 +1,9 @@
 export const RATE_DECIMALS = 2;
 
-export function roundUp(value: number, decimals = RATE_DECIMALS): number {
+export function ceilToDecimals(
+  value: number,
+  decimals = RATE_DECIMALS,
+): number {
   if (!isFinite(value)) return 0;
   const factor = 10 ** decimals;
   return Math.ceil(value * factor) / factor;
