@@ -1,4 +1,4 @@
-const CACHE_NAME = "tasadolar-v2";
+const CACHE_NAME = "tasadolar-v4";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/favicon.ico",
@@ -45,41 +45,82 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(event));
+    event.respondWith(staleWhileRevalidatePage(event));
     return;
   }
 
   event.respondWith(cacheFirst(request));
 });
 
-async function networkFirst(event) {
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "refresh-page") return;
+
+  event.waitUntil(refreshCachedPage(event.source));
+});
+
+async function staleWhileRevalidatePage(event) {
   const { request } = event;
   const cache = await caches.open(CACHE_NAME);
+  const cached =
+    (await cache.match(request, { ignoreSearch: true })) ??
+    (await cache.match("/"));
+
+  if (cached) {
+    event.waitUntil(notifyClients(event, "cached-page-used"));
+    event.waitUntil(
+      cachePageWithAssets(request)
+        .then((changed) => {
+          if (changed) return notifyClients(event, "fresh-page-ready");
+          return notifyClients(event, "fresh-page-current");
+        })
+        .catch(() => notifyClients(event, "refresh-page-failed")),
+    );
+    return cached;
+  }
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
-      await cache.put(request, response.clone());
-      event.waitUntil(cachePageAssets(response.clone()));
-    }
+    if (response.ok)
+      event.waitUntil(cachePageResponse(request, response.clone()));
     return response;
   } catch {
-    const fallback =
-      (await cache.match(request, { ignoreSearch: true })) ??
-      (await cache.match("/")) ??
-      offlineFallback();
-    event.waitUntil(notifyCachedPageUsed(event));
-    return fallback;
+    event.waitUntil(notifyClients(event, "cached-page-used"));
+    return offlineFallback();
+  }
+}
+
+async function refreshCachedPage(client) {
+  try {
+    const changed = await cachePageWithAssets("/");
+    client?.postMessage({
+      type: changed ? "fresh-page-ready" : "fresh-page-current",
+    });
+  } catch {
+    client?.postMessage({ type: "refresh-page-failed" });
   }
 }
 
 async function cachePageWithAssets(request) {
-  const cache = await caches.open(CACHE_NAME);
   const response = await fetch(request);
-  if (!response.ok) return;
+  if (!response.ok) return false;
 
-  await cache.put("/", response.clone());
+  return cachePageResponse(request, response);
+}
+
+async function cachePageResponse(request, response) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request, { ignoreSearch: true });
+  const changed =
+    !cached ||
+    (await cached.clone().text()) !== (await response.clone().text());
+
+  await cache.put(request, response.clone());
+  if (new URL(request.url ?? request, self.location.origin).pathname === "/") {
+    await cache.put("/", response.clone());
+  }
   await cachePageAssets(response);
+
+  return changed;
 }
 
 async function cachePageAssets(response) {
@@ -101,7 +142,7 @@ function offlineFallback() {
   );
 }
 
-async function notifyCachedPageUsed(event) {
+async function notifyClients(event, type) {
   const clientId = event.resultingClientId || event.clientId;
   const clientsToNotify = clientId
     ? [await self.clients.get(clientId)]
@@ -111,7 +152,7 @@ async function notifyCachedPageUsed(event) {
       });
 
   clientsToNotify.forEach((client) => {
-    client?.postMessage({ type: "cached-page-used" });
+    client?.postMessage({ type });
   });
 }
 

@@ -185,18 +185,69 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
     }
     <script is:inline>
       const staleBanner = document.querySelector("[data-stale-banner]");
+      const refreshIndicator = document.querySelector(
+        "[data-refresh-indicator]",
+      );
+      let reloadPending = false;
 
       const setStaleBannerVisible = (visible) => {
         if (staleBanner) staleBanner.hidden = !visible;
       };
 
+      const setRefreshIndicatorVisible = (visible) => {
+        if (refreshIndicator) refreshIndicator.hidden = !visible;
+      };
+
+      const refreshCachedPage = () => {
+        if (!navigator.onLine) return;
+
+        setRefreshIndicatorVisible(true);
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: "refresh-page",
+          });
+        } else {
+          window.location.reload();
+        }
+      };
+
+      const reloadWithFreshPage = () => {
+        if (reloadPending) return;
+        reloadPending = true;
+        setRefreshIndicatorVisible(true);
+        window.setTimeout(() => window.location.reload(), 150);
+      };
+
       setStaleBannerVisible(!navigator.onLine);
-      window.addEventListener("online", () => setStaleBannerVisible(false));
-      window.addEventListener("offline", () => setStaleBannerVisible(true));
+      window.addEventListener("online", () => {
+        setStaleBannerVisible(false);
+        refreshCachedPage();
+      });
+      window.addEventListener("offline", () => {
+        setRefreshIndicatorVisible(false);
+        setStaleBannerVisible(true);
+      });
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.addEventListener("message", (event) => {
           if (event.data?.type === "cached-page-used") {
+            if (navigator.onLine) {
+              setRefreshIndicatorVisible(true);
+            } else {
+              setStaleBannerVisible(true);
+            }
+          }
+
+          if (event.data?.type === "fresh-page-ready") {
+            reloadWithFreshPage();
+          }
+
+          if (event.data?.type === "fresh-page-current") {
+            setRefreshIndicatorVisible(false);
+          }
+
+          if (event.data?.type === "refresh-page-failed") {
+            setRefreshIndicatorVisible(false);
             setStaleBannerVisible(true);
           }
         });
