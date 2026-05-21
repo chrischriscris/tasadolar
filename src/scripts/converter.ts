@@ -54,18 +54,26 @@ function formatRateText(unit: "BS" | "USD", value: number): string {
 }
 
 function sanitizeInput(raw: string): string {
-  let cleaned = raw.replace(/[^0-9,]/g, "");
-  const commaIndex = cleaned.indexOf(",");
-  if (commaIndex !== -1) {
-    cleaned =
-      cleaned.slice(0, commaIndex + 1) +
-      cleaned.slice(commaIndex + 1).replace(/,/g, "");
-  }
+  const cleaned = raw.replace(/[^0-9.,]/g, "");
+  const lastSeparatorIndex = Math.max(
+    cleaned.lastIndexOf(","),
+    cleaned.lastIndexOf("."),
+  );
+  const hasTrailingSeparator =
+    lastSeparatorIndex !== -1 && lastSeparatorIndex === cleaned.length - 1;
 
-  const [intPart, decPartRaw] = cleaned.split(",");
+  const intPartRaw =
+    lastSeparatorIndex === -1 ? cleaned : cleaned.slice(0, lastSeparatorIndex);
+  const decPartRaw =
+    lastSeparatorIndex === -1
+      ? undefined
+      : cleaned.slice(lastSeparatorIndex + 1);
+
+  const intPart = intPartRaw.replace(/[.,]/g, "");
   const decPart = decPartRaw ? decPartRaw.slice(0, RATE_DECIMALS) : undefined;
   const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
+  if (hasTrailingSeparator) return `${formattedInt},`;
   return decPart !== undefined ? `${formattedInt},${decPart}` : formattedInt;
 }
 
