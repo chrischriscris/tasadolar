@@ -164,14 +164,6 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
     class="bg-background text-foreground h-dvh min-h-screen overflow-hidden antialiased"
   >
     <slot />
-    <div
-      data-stale-banner
-      hidden
-      role="status"
-      class="fixed right-3 bottom-3 left-3 z-[100] rounded-xl border border-yellow-400/20 bg-yellow-950/95 px-3 py-2 text-center text-xs font-medium text-yellow-100 shadow-lg backdrop-blur-sm"
-    >
-      Sin conexión. Mostrando las últimas tasas guardadas.
-    </div>
     {
       cloudflareWebAnalyticsToken && (
         <script
@@ -184,16 +176,11 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
       )
     }
     <script is:inline>
-      const staleBanner = document.querySelector("[data-stale-banner]");
       const refreshIndicator = document.querySelector(
         "[data-refresh-indicator]",
       );
       const freshReloadKey = "tasadolar:fresh-reload-used";
       let reloadPending = false;
-
-      const setStaleBannerVisible = (visible) => {
-        if (staleBanner) staleBanner.hidden = !visible;
-      };
 
       const setRefreshIndicatorVisible = (visible) => {
         if (refreshIndicator) refreshIndicator.hidden = !visible;
@@ -224,14 +211,11 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
         window.setTimeout(() => window.location.reload(), 150);
       };
 
-      setStaleBannerVisible(!navigator.onLine);
       window.addEventListener("online", () => {
-        setStaleBannerVisible(false);
         refreshCachedPage();
       });
       window.addEventListener("offline", () => {
         setRefreshIndicatorVisible(false);
-        setStaleBannerVisible(true);
       });
 
       if ("serviceWorker" in navigator) {
@@ -239,8 +223,6 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
           if (event.data?.type === "cached-page-used") {
             if (navigator.onLine) {
               setRefreshIndicatorVisible(true);
-            } else {
-              setStaleBannerVisible(true);
             }
           }
 
@@ -255,7 +237,6 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
 
           if (event.data?.type === "refresh-page-failed") {
             setRefreshIndicatorVisible(false);
-            setStaleBannerVisible(true);
           }
         });
 
