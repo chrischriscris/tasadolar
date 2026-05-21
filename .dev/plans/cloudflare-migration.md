@@ -1,71 +1,6 @@
 # Migration Plan: Vercel -> Cloudflare
 
-## 1. Create a Cloudflare Account
-
-1. Go to https://dash.cloudflare.com/sign-up
-2. Sign up with email + password (or GitHub OAuth)
-3. Pick the free plan — it covers everything we need
-
-## 2. Install Wrangler CLI
-
-```bash
-npm install -g wrangler
-wrangler login
-```
-
-This opens a browser window to authorize the CLI with your Cloudflare account.
-
-## 3. Swap the Astro Adapter
-
-```bash
-npm remove @astrojs/vercel
-npm install @astrojs/cloudflare
-```
-
-Update `astro.config.mjs`:
-
-```js
-// @ts-check
-import { defineConfig } from "astro/config";
-import tailwindcss from "@tailwindcss/vite";
-import cloudflare from "@astrojs/cloudflare";
-import react from "@astrojs/react";
-
-export default defineConfig({
-  output: "server",
-  adapter: cloudflare(),
-  vite: {
-    plugins: [tailwindcss()],
-  },
-  integrations: [react()],
-});
-```
-
-## 4. Add Wrangler Config
-
-Create `wrangler.jsonc` at the project root:
-
-```jsonc
-{
-  "name": "tasadolar",
-  "compatibility_date": "2024-12-01",
-  "pages_build_output_dir": "./dist",
-}
-```
-
-## 5. Deploy (Verify It Works Before Adding DB)
-
-```bash
-npm run build
-wrangler pages deploy dist
-```
-
-Alternatively, connect the GitHub repo from the Cloudflare dashboard:
-Dashboard -> Workers & Pages -> Create -> Pages -> Connect to Git
-
-This gives you automatic deploys on push, same as Vercel.
-
-## 6. Set Up D1 Database (for Rate History)
+## 1. Set Up D1 Database (for Rate History)
 
 ### Create the database
 
@@ -113,7 +48,7 @@ wrangler d1 execute tasadolar-rates --file=schema.sql        # production
 wrangler d1 execute tasadolar-rates --file=schema.sql --local # local dev
 ```
 
-## 7. Create the Cron Worker (Fetches Rates -> D1)
+## 2. Create the Cron Worker (Fetches Rates -> D1)
 
 This is a separate Worker (or a scheduled handler in the same project) that
 runs on a schedule, calls BCV + Binance APIs, and inserts rows into D1.
@@ -143,7 +78,7 @@ Add cron schedule to `wrangler.jsonc`:
 }
 ```
 
-## 8. Update the Page to Read from D1
+## 3. Update the Page to Read from D1
 
 Change `fetchAllRates()` in `src/lib/rates.ts` to query D1 instead of
 calling external APIs directly:
@@ -163,16 +98,112 @@ calling external APIs directly:
 
 This makes page loads fast (single DB read, no external API calls).
 
-## 9. Cleanup
+## 4. Database Strategy & Mobile Access
 
-- Delete `.vercel/` directory
-- Remove `@vercel/analytics` and `@vercel/speed-insights` from package.json
-  (replace with Cloudflare Web Analytics if desired — it's free and
-  privacy-friendly, just a script tag from the dashboard)
-- Remove Vercel project from the Vercel dashboard
-- Update DNS if using a custom domain (point it to Cloudflare Pages)
+### D1 Limitations
 
-## Architecture After Migration
+**Vendor lock-in:**
+
+- API is Cloudflare-specific (`env.DB.prepare()`)
+- Only runs inside Workers runtime
+- No standard SQLite connection protocol
+
+**Mitigating factors:**
+
+- Standard SQLite syntax (portable queries/schemas)
+- Data exportable via `wrangler d1 export`
+- Migration to any SQLite database requires minimal query changes
+
+**Mobile access:**
+
+- D1 is **server-side only** — mobile apps cannot connect directly
+- Would require building a Worker API for mobile access
+- No built-in auth or Row Level Security (unlike Supabase)
+
+### Alternative: Supabase (PostgreSQL)
+
+**Pros:**
+
+- Direct client SDK access (iOS/Android/Flutter)
+- Built-in auth + Row Level Security
+- Auto-generated REST API
+- Real-time subscriptions
+- Zero data lock-in (standard PostgreSQL, exportable anywhere)
+- Open-source stack (self-hostable)
+
+**Cons:**
+
+- Higher latency (~50-200ms vs D1's <10ms)
+- External network call from Cloudflare Worker
+- Would break the "performance is top priority" principle
+
+### Recommended: Hybrid Architecture
+
+Use both D1 (primary) and Supabase (mobile + backup):
+
+```
+Cron Worker (every 5 min)
+  ├─→ D1 (primary, <10ms latency for web SSR)
+  └─→ Supabase (mobile SDK access + backup)
+```
+
+**Implementation:**
+
+```ts
+// src/workers/cron-rates.ts
+export default {
+  async scheduled(controller, env, ctx) {
+    const rates = await fetchAllRates();
+
+    await Promise.all([
+      // D1 (fast, co-located with Worker)
+      env.DB.prepare(
+        "INSERT INTO rates (source, price, api_updated_at) VALUES (?, ?, ?)",
+      )
+        .bind(rate.source, rate.price, rate.apiUpdatedAt)
+        .run(),
+
+      // Supabase (mobile access + backup)
+      fetch("https://xxx.supabase.co/rest/v1/rates", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: env.SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`,
+        },
+        body: JSON.stringify(rate),
+      }),
+    ]);
+  },
+};
+```
+
+**Benefits:**
+
+- Web stays fast (D1 co-located with Worker)
+- Mobile gets native SDK + realtime via Supabase
+- Automatic backup/redundancy
+- Clear migration path if leaving Cloudflare
+- No mobile auth complexity (Supabase RLS handles it)
+
+### Latency Comparison
+
+| Architecture        | Latency                                |
+| ------------------- | -------------------------------------- |
+| D1 only             | <10ms (Worker + DB same edge location) |
+| Supabase only       | 50-200ms (external API call)           |
+| Hybrid (D1 for web) | <10ms for web, Supabase for mobile     |
+
+### Decision Matrix
+
+| Need                    | Recommended            |
+| ----------------------- | ---------------------- |
+| Maximum web performance | D1 only                |
+| Mobile app access       | Supabase (or hybrid)   |
+| Avoid vendor lock-in    | Supabase (or hybrid)   |
+| Both + redundancy       | Hybrid (D1 + Supabase) |
+
+## 5. Architecture After Migration
 
 ```
 User request
@@ -183,10 +214,10 @@ User request
 Cron (every 5 min)
   -> Cloudflare Worker
     -> calls BCV API + Binance P2P API
-    -> writes fresh rates to D1
+    -> writes fresh rates to D1 (and optionally Supabase)
 ```
 
-## Relevant Docs
+## 6. Relevant Docs
 
 - Astro Cloudflare adapter: https://docs.astro.build/en/guides/deploy/cloudflare/
 - Cloudflare Pages + Astro: https://developers.cloudflare.com/pages/framework-guides/deploy-an-astro-site/
@@ -194,7 +225,9 @@ Cron (every 5 min)
 - Cron Triggers: https://developers.cloudflare.com/workers/configuration/cron-triggers/
 - Wrangler config: https://developers.cloudflare.com/workers/wrangler/configuration/
 
-## Free Tier Limits (for reference)
+## 7. Free Tier Limits
+
+### Cloudflare
 
 | Resource         | Limit                |
 | ---------------- | -------------------- |
@@ -204,3 +237,12 @@ Cron (every 5 min)
 | D1 storage       | 5 GB                 |
 | Cron triggers    | 5 per Worker         |
 | Bandwidth        | Unlimited            |
+
+### Supabase
+
+| Resource               | Limit                     |
+| ---------------------- | ------------------------- |
+| Database               | 500 MB                    |
+| Bandwidth              | 5 GB/month                |
+| API requests           | Unlimited                 |
+| Concurrent connections | 60 (direct), 200 (pooler) |

@@ -1,7 +1,8 @@
 ---
 import "../styles/global.css";
-import Analytics from "@vercel/analytics/astro";
-import SpeedInsights from "@vercel/speed-insights/astro";
+
+const cloudflareWebAnalyticsToken = import.meta.env
+  .PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
 ---
 
 <!doctype html>
@@ -12,17 +13,46 @@ import SpeedInsights from "@vercel/speed-insights/astro";
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="/icons/icon-16x16.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="/icons/icon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/icons/icon-192x192.png"
+    />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" href="/favicon.ico" />
     <meta name="generator" content={Astro.generator} />
     <meta name="theme-color" content="#0a0a0a" />
     <title>TasaDolar - Tasas de Cambio</title>
+    <link rel="preconnect" href="https://flagcdn.com" />
+    <link rel="preconnect" href="https://public.bnbstatic.com" />
   </head>
   <body
     class="bg-background text-foreground h-dvh min-h-screen overflow-hidden antialiased"
   >
     <slot />
-    <Analytics />
-    <SpeedInsights />
+    {
+      cloudflareWebAnalyticsToken && (
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={JSON.stringify({
+            token: cloudflareWebAnalyticsToken,
+          })}
+        />
+      )
+    }
   </body>
 </html>

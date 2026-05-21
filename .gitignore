@@ -1,9 +1,19 @@
 # build output
 dist/
 .vercel/
+.wrangler/
 
 # generated types
 .astro/
+
+# Xcode / SwiftPM generated files
+ios/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Icon Composer temporary exports
+tasadolar Exports/
 
 # dependencies
 node_modules/
