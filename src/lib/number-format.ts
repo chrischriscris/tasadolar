@@ -1,5 +1,10 @@
 export const RATE_DECIMALS = 2;
 
+const defaultNumberFormatter = new Intl.NumberFormat("es-VE", {
+  minimumFractionDigits: RATE_DECIMALS,
+  maximumFractionDigits: RATE_DECIMALS,
+});
+
 export function ceilToDecimals(
   value: number,
   decimals = RATE_DECIMALS,
@@ -10,6 +15,8 @@ export function ceilToDecimals(
 }
 
 export function formatNumber(value: number, decimals = RATE_DECIMALS): string {
+  if (decimals === RATE_DECIMALS) return defaultNumberFormatter.format(value);
+
   return new Intl.NumberFormat("es-VE", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,

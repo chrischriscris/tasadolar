@@ -19,6 +19,13 @@ type RateRowData = {
   available: boolean;
 };
 
+type RateRow = {
+  element: HTMLElement;
+  valueEl: HTMLElement;
+  tooltipEl: HTMLElement | null;
+  data: RateRowData;
+};
+
 type ConverterState = {
   activeTab: Tab;
   amount: number | null;
@@ -52,15 +59,27 @@ function formatRateText(unit: "BS" | "USD", value: number): string {
   return `${prefix} ${formatNumber(ceilToDecimals(value), RATE_DECIMALS)}`;
 }
 
-function setRateText(id: string, text: string): void {
-  const valueEl = document.querySelector<HTMLElement>(
-    `[data-rate-value="${id}"]`,
-  );
-  const tooltipEl = document.querySelector<HTMLElement>(
-    `[data-rate-tooltip="${id}"]`,
-  );
+function readRateRow(row: HTMLElement): RateRow | null {
+  const data = readRateRowData(row);
+  if (!data) return null;
 
-  if (!valueEl) return;
+  const valueEl = document.querySelector<HTMLElement>(
+    `[data-rate-value="${data.id}"]`,
+  );
+  if (!valueEl) return null;
+
+  return {
+    element: row,
+    valueEl,
+    tooltipEl: document.querySelector<HTMLElement>(
+      `[data-rate-tooltip="${data.id}"]`,
+    ),
+    data,
+  };
+}
+
+function setRateText(row: RateRow, text: string): void {
+  const { valueEl, tooltipEl } = row;
   valueEl.textContent = text;
   valueEl.title = text;
   valueEl.setAttribute("aria-label", text);
@@ -93,11 +112,8 @@ function initConverter(): void {
   if (!input || !symbolEl || rows.length === 0) return;
 
   const rateRows = Array.from(rows)
-    .map((row) => ({ element: row, data: readRateRowData(row) }))
-    .filter(
-      (row): row is { element: HTMLElement; data: RateRowData } =>
-        row.data !== null,
-    );
+    .map(readRateRow)
+    .filter((row): row is RateRow => row !== null);
   const state: ConverterState = {
     activeTab: "USD",
     amount: null,
@@ -108,7 +124,8 @@ function initConverter(): void {
   const updateRates = (): void => {
     const amount = state.amount ?? 1;
 
-    rateRows.forEach(({ element, data }) => {
+    rateRows.forEach((row) => {
+      const { element, data } = row;
       if (state.activeTab === "BS") {
         if (data.id === "bcv-to-usdt" || data.id === "usdt-to-bcv") {
           element.style.display = "none";
@@ -116,16 +133,13 @@ function initConverter(): void {
         }
         element.style.display = "";
         if (!data.available) {
-          setRateText(data.id, "No disponible");
+          setRateText(row, "No disponible");
           return;
         }
         const converted =
           data.baseRate > 0 ? ceilToDecimals(amount / data.baseRate) : 0;
         const unit = data.currency === "EUR" ? "€" : "$";
-        setRateText(
-          data.id,
-          `${unit} ${formatNumber(converted, RATE_DECIMALS)}`,
-        );
+        setRateText(row, `${unit} ${formatNumber(converted, RATE_DECIMALS)}`);
         return;
       }
 
@@ -136,11 +150,11 @@ function initConverter(): void {
 
       element.style.display = "";
       if (!data.available) {
-        setRateText(data.id, "No disponible");
+        setRateText(row, "No disponible");
         return;
       }
       setRateText(
-        data.id,
+        row,
         formatRateText(data.displayUnit, amount * data.baseRate),
       );
     });
