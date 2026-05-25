@@ -3,7 +3,7 @@ import { rateDefinitions } from "@/lib/rate-definitions";
 
 export const GET: APIRoute = ({ request, site }) => {
   const origin = site?.href ?? new URL(request.url).origin;
-  const paths = ["/", ...rateDefinitions.map((rate) => `/${rate.slug}`)];
+  const paths = ["/", ...rateDefinitions.map((rate) => `/${rate.slug}/`)];
   const lastmod = new Date().toISOString();
   const urls = paths
     .map((path) => {

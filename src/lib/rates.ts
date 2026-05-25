@@ -167,7 +167,7 @@ export async function fetchAllRates(): Promise<AllRates> {
   const cards: RateCardData[] = rateDefinitions.map((definition) => ({
     id: definition.id,
     title: definition.cardTitle,
-    href: `/${definition.slug}`,
+    href: `/${definition.slug}/`,
     value: values[definition.id].value,
     change: 0, // TODO: track daily change
     icon: definition.icon,

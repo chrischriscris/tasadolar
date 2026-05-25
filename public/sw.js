@@ -1,4 +1,4 @@
-const CACHE_NAME = "tasadolar-v8";
+const CACHE_NAME = "tasadolar-v9";
 const APP_SHELL = [
   "/app.webmanifest?start_url=%2F",
   "/favicon.ico",

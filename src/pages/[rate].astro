@@ -44,7 +44,7 @@ const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
 <Layout
   title={pageTitle}
   description={pageDescription}
-  canonicalPath={`/${route.slug}`}
+  canonicalPath={`/${route.slug}/`}
 >
   <div class="mx-auto flex h-full max-w-md flex-col p-4">
     <nav
@@ -52,7 +52,7 @@ const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
       aria-label="Tasas"
     >
       <a
-        href={`/${previousRoute.slug}`}
+        href={`/${previousRoute.slug}/`}
         class="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold text-white/45 transition-colors hover:text-white"
         aria-label={`Ver ${previousRoute.title}`}
       >
@@ -61,7 +61,7 @@ const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
       </a>
 
       <a
-        href={`/${nextRoute.slug}`}
+        href={`/${nextRoute.slug}/`}
         class="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm font-semibold text-white/45 transition-colors hover:text-white"
         aria-label={`Ver ${nextRoute.title}`}
       >
