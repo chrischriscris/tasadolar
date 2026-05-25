@@ -1,4 +1,4 @@
-const CACHE_NAME = "tasadolar-v6";
+const CACHE_NAME = "tasadolar-v7";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/favicon.ico",
@@ -77,7 +77,7 @@ async function staleWhileRevalidatePage(event) {
   }
 
   try {
-    const response = await fetch(request);
+    const response = await fetchWithoutRedirectedResponse(request);
     if (response.ok)
       event.waitUntil(cachePageResponse(request, response.clone()));
     return response;
@@ -102,13 +102,15 @@ async function refreshCachedPage(client) {
 }
 
 async function cachePageWithAssets(request) {
-  const response = await fetch(request);
+  const response = await fetchWithoutRedirectedResponse(request);
   if (!response.ok) return false;
 
   return cachePageResponse(request, response);
 }
 
 async function cachePageResponse(request, response) {
+  if (response.redirected) return false;
+
   const cache = await caches.open(CACHE_NAME);
   const cached = await cache.match(request, { ignoreSearch: true });
   const changed =
@@ -162,7 +164,18 @@ async function cacheFirst(request) {
   const cached = await cache.match(request);
   if (cached) return cached;
 
-  const response = await fetch(request);
-  cache.put(request, response.clone());
+  const response = await fetchWithoutRedirectedResponse(request);
+  await cache.put(request, response.clone());
   return response;
+}
+
+async function fetchWithoutRedirectedResponse(request) {
+  const response = await fetch(request);
+  if (!response.redirected) return response;
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
 }
