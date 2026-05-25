@@ -68,17 +68,11 @@
 }
 
 html[data-tab-filtering="true"][data-active-tab="USD"]
-  [data-rate-row][data-visible-tab-tokens]:not(
-    [data-visible-tab-tokens~="USD"]
-  ),
+  [data-rate-row][data-visible-tabs]:not([data-visible-tabs~="USD"]),
 html[data-tab-filtering="true"][data-active-tab="EUR"]
-  [data-rate-row][data-visible-tab-tokens]:not(
-    [data-visible-tab-tokens~="EUR"]
-  ),
+  [data-rate-row][data-visible-tabs]:not([data-visible-tabs~="EUR"]),
 html[data-tab-filtering="true"][data-active-tab="BS"]
-  [data-rate-row][data-visible-tab-tokens]:not(
-    [data-visible-tab-tokens~="BS"]
-  ) {
+  [data-rate-row][data-visible-tabs]:not([data-visible-tabs~="BS"]) {
   display: none;
 }
 

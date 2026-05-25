@@ -1,8 +1,9 @@
 import type { APIRoute } from "astro";
+import { rateDefinitions } from "@/lib/rate-definitions";
 
 export const GET: APIRoute = ({ request, site }) => {
   const origin = site?.href ?? new URL(request.url).origin;
-  const paths = ["/", "/bcv", "/usdt", "/usdt_bcv", "/bcv_usdt", "/eur"];
+  const paths = ["/", ...rateDefinitions.map((rate) => `/${rate.slug}`)];
   const lastmod = new Date().toISOString();
   const urls = paths
     .map((path) => {

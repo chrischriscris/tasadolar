@@ -31,6 +31,13 @@ import type { Rate } from "./types";
 import { fetchBcvUsd, fetchBcvEur } from "./bcv";
 import { fetchBinanceRate } from "./binance";
 import { ceilToDecimals } from "./number-format";
+import {
+  rateDefinitions,
+  type CurrencyTab,
+  type DisplayUnit,
+  type RateIcon,
+  type RateId,
+} from "./rate-definitions";
 
 const CACHE_TTL_MS = 60_000;
 
@@ -38,17 +45,22 @@ let cachedRates: { expiresAt: number; data: AllRates } | undefined;
 
 /** Shape expected by RateCard.astro */
 export interface RateCardData {
-  id: string;
+  id: RateId;
   title: string;
   href?: string;
   value: number | null;
   change: number; // TODO: implement daily change tracking (needs historical data)
-  icon: "bcv" | "us" | "binance" | "eu";
-  currency: "USD" | "EUR" | "BS";
-  displayUnit: "BS" | "USD";
-  visibleTabs: ("USD" | "EUR" | "BS")[];
+  icon: RateIcon;
+  currency: CurrencyTab;
+  displayUnit: DisplayUnit;
+  visibleTabs: CurrencyTab[];
   error?: string;
 }
+
+type RateValue = {
+  value: number | null;
+  error?: string;
+};
 
 export interface AllRates {
   /** Rate cards to pass to <RatesList rates={cards} /> */
@@ -132,74 +144,38 @@ export async function fetchAllRates(): Promise<AllRates> {
   // NOTE: `change` is hardcoded to 0 for now. To implement daily change %,
   // you'd need to store yesterday's rate and compute the delta.
   // See TODO below.
-  const cards: RateCardData[] = [
-    {
-      id: "bcv-usd",
-      title: "Tasa BCV",
-      href: "/bcv",
-      value: bcvUsdPrice,
-      change: 0, // TODO: track daily change
-      icon: "bcv",
-      currency: "USD",
-      displayUnit: "BS",
-      visibleTabs: ["USD", "BS"],
-      error: bcvUsd.error,
-    },
-    {
-      id: "binance-usd",
-      title: "Tasa Binance (USDT)",
-      href: "/usdt",
-      value: binancePrice,
-      change: 0, // TODO: track daily change
-      icon: "binance",
-      currency: "USD",
-      displayUnit: "BS",
-      visibleTabs: ["USD", "BS"],
-      error: binance.error,
-    },
-    {
-      id: "bcv-to-usdt",
-      title: "BCV -> USDT",
-      href: "/bcv_usdt",
+  const values = {
+    "bcv-usd": { value: bcvUsdPrice, error: bcvUsd.error },
+    "binance-usd": { value: binancePrice, error: binance.error },
+    "bcv-to-usdt": {
       value: bcvToUsdtRate,
-      change: 0,
-      icon: "bcv",
-      currency: "USD",
-      displayUnit: "USD",
-      visibleTabs: ["USD"],
       error:
         bcvUsdPrice === null || binancePrice === null
           ? "BCV or Binance unavailable"
           : undefined,
     },
-    {
-      id: "usdt-to-bcv",
-      title: "USDT -> BCV",
-      href: "/usdt_bcv",
+    "usdt-to-bcv": {
       value: usdtToBcvRate,
-      change: 0,
-      icon: "binance",
-      currency: "USD",
-      displayUnit: "USD",
-      visibleTabs: ["USD"],
       error:
         bcvUsdPrice === null || binancePrice === null
           ? "BCV or Binance unavailable"
           : undefined,
     },
-    {
-      id: "bcv-eur",
-      title: "Tasa Euro BCV",
-      href: "/eur",
-      value: bcvEurPrice,
-      change: 0, // TODO: track daily change
-      icon: "eu",
-      currency: "EUR",
-      displayUnit: "BS",
-      visibleTabs: ["EUR", "BS"],
-      error: bcvEur.error,
-    },
-  ];
+    "bcv-eur": { value: bcvEurPrice, error: bcvEur.error },
+  } satisfies Record<RateId, RateValue>;
+
+  const cards: RateCardData[] = rateDefinitions.map((definition) => ({
+    id: definition.id,
+    title: definition.cardTitle,
+    href: `/${definition.slug}`,
+    value: values[definition.id].value,
+    change: 0, // TODO: track daily change
+    icon: definition.icon,
+    currency: definition.currency,
+    displayUnit: definition.displayUnit,
+    visibleTabs: [...definition.visibleTabs],
+    error: values[definition.id].error,
+  }));
 
   // -- Compute exchange gap ---------------------------------------------------
   const exchangeGapPercentage =

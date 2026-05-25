@@ -113,6 +113,7 @@ function setActiveTabStyles(activeTab: Tab): void {
     button.classList.toggle("bg-teal", isActive);
     button.classList.toggle("text-primary-foreground", isActive);
     button.classList.toggle("text-white/60", !isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
   });
 }
 
