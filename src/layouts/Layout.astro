@@ -26,6 +26,7 @@ const siteUrl =
   import.meta.env.PUBLIC_SITE_URL ?? Astro.site?.href ?? Astro.url.origin;
 const canonicalUrl = new URL(canonicalPath, siteUrl).href;
 const imageUrl = new URL(image, siteUrl).href;
+const manifestUrl = `/app.webmanifest?start_url=${encodeURIComponent(Astro.url.pathname)}`;
 const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
 ---
 
@@ -62,7 +63,7 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
     />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" href="/favicon.ico" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href={manifestUrl} />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow, max-image-preview:large" />
