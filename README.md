@@ -6,13 +6,15 @@ Built with [Astro](https://astro.build) and deployed on [Cloudflare Workers](htt
 
 ## Commands
 
-| Command             | Action                                       |
-| :------------------ | :------------------------------------------- |
-| `npm install`       | Install dependencies                         |
-| `npm run dev`       | Start dev server at `localhost:4321`         |
-| `npm run build`     | Build production site to `./dist/`           |
-| `npm run preview`   | Preview build locally                        |
-| `npm run astro ...` | Run Astro CLI commands (`add`, `check`, etc) |
+| Command              | Action                                       |
+| :------------------- | :------------------------------------------- |
+| `npm install`        | Install dependencies                         |
+| `npm run dev`        | Start dev server at `localhost:4321`         |
+| `npm run build`      | Build production site to `./dist/`           |
+| `npm test`           | Run the Vitest test suite once               |
+| `npm run test:watch` | Run Vitest in watch mode                     |
+| `npm run preview`    | Preview build locally                        |
+| `npm run astro ...`  | Run Astro CLI commands (`add`, `check`, etc) |
 
 ## Deployment
 
