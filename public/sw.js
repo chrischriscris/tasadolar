@@ -1,4 +1,4 @@
-const CACHE_NAME = "tasadolar-v5";
+const CACHE_NAME = "tasadolar-v6";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/favicon.ico",
@@ -61,9 +61,7 @@ self.addEventListener("message", (event) => {
 async function staleWhileRevalidatePage(event) {
   const { request } = event;
   const cache = await caches.open(CACHE_NAME);
-  const cached =
-    (await cache.match(request, { ignoreSearch: true })) ??
-    (await cache.match("/"));
+  const cached = await cache.match(request, { ignoreSearch: true });
 
   if (cached) {
     event.waitUntil(notifyClients(event, "cached-page-used"));
@@ -84,6 +82,9 @@ async function staleWhileRevalidatePage(event) {
       event.waitUntil(cachePageResponse(request, response.clone()));
     return response;
   } catch {
+    const fallback = await cache.match("/");
+    if (fallback) return fallback;
+
     event.waitUntil(notifyClients(event, "cached-page-used"));
     return offlineFallback();
   }
@@ -91,7 +92,7 @@ async function staleWhileRevalidatePage(event) {
 
 async function refreshCachedPage(client) {
   try {
-    const changed = await cachePageWithAssets("/");
+    const changed = await cachePageWithAssets(client?.url ?? "/");
     client?.postMessage({
       type: changed ? "fresh-page-ready" : "fresh-page-current",
     });
