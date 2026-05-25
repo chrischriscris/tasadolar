@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "astro preview",
     "deploy": "npm run build && wrangler deploy",
     "deploy:preview": "npm run build && wrangler deploy --dry-run",
@@ -26,6 +28,7 @@
     "prettier": "3.8.1",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
+    "vitest": "^4.1.7",
     "wrangler": "^4.77.0"
   }
 }
