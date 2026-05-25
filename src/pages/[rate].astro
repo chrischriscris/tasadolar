@@ -1,0 +1,92 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { Image } from "astro:assets";
+import ConverterInput from "@/components/ConverterInput.astro";
+import RateCard from "@/components/RateCard.astro";
+import { rateRoutes, type RateRoute } from "@/lib/rate-routes";
+import { fetchAllRates, type RateCardData } from "@/lib/rates";
+import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return rateRoutes.map((route) => ({
+    params: { rate: route.slug },
+    props: { route },
+  }));
+}
+
+const { route } = Astro.props as { route: RateRoute };
+const { cards, lastUpdatedText } = await fetchAllRates();
+const rate = cards.find((card) => card.id === route.id) as
+  | RateCardData
+  | undefined;
+
+if (!rate) return Astro.redirect("/");
+
+const rateText =
+  rate.value === null
+    ? "no disponible"
+    : `${rate.displayUnit === "BS" ? "Bs." : "$"} ${formatNumber(
+        rate.value,
+        RATE_DECIMALS,
+      )}`;
+const pageTitle = `${route.title} hoy: ${rateText} | TasaDolar`;
+const pageDescription = `Calcula ${route.inputLabel} con la tasa ${route.title} de hoy: ${rateText}.`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalPath={`/${route.slug}`}
+>
+  <main class="mx-auto flex h-full max-w-md flex-col justify-center gap-6 p-4">
+    <a
+      href="/"
+      class="mx-auto flex items-center gap-3 text-white/50 transition-colors hover:text-white"
+      aria-label="Volver a TasaDolar"
+    >
+      <Image
+        src="/icons/icon-192x192.png"
+        alt=""
+        width="36"
+        height="36"
+        loading="eager"
+        class="h-9 w-9 object-cover"
+        aria-hidden="true"
+      />
+      <span class="text-2xl font-bold tracking-tight">TasaDolar</span>
+    </a>
+
+    <section class="flex flex-col gap-3">
+      <div class="flex items-end justify-between gap-3">
+        <div>
+          <p
+            class="text-xs font-semibold tracking-[0.2em] text-white/35 uppercase"
+          >
+            {route.inputLabel}
+          </p>
+          <h1 class="text-3xl font-black tracking-tight text-white">
+            {route.title}
+          </h1>
+        </div>
+        <p class="shrink-0 text-right text-xs text-white/40">
+          {lastUpdatedText}
+        </p>
+      </div>
+
+      <RateCard rate={{ ...rate, href: undefined }} />
+    </section>
+
+    <section class="flex flex-col gap-2">
+      <label for="converter-input" class="text-sm font-medium text-white/50">
+        Monto en {route.inputLabel}
+      </label>
+      <ConverterInput symbol={route.inputSymbol} />
+    </section>
+  </main>
+</Layout>
+
+<script>
+  import "@/scripts/single-rate-converter";
+</script>

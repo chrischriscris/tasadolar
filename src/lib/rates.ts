@@ -40,6 +40,7 @@ let cachedRates: { expiresAt: number; data: AllRates } | undefined;
 export interface RateCardData {
   id: string;
   title: string;
+  href?: string;
   value: number | null;
   change: number; // TODO: implement daily change tracking (needs historical data)
   icon: "bcv" | "us" | "binance" | "eu";
@@ -134,6 +135,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-usd",
       title: "Tasa BCV",
+      href: "/bcv",
       value: bcvUsdPrice,
       change: 0, // TODO: track daily change
       icon: "bcv",
@@ -144,6 +146,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "binance-usd",
       title: "Tasa Binance (USDT)",
+      href: "/usdt",
       value: binancePrice,
       change: 0, // TODO: track daily change
       icon: "binance",
@@ -154,6 +157,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-to-usdt",
       title: "BCV -> USDT",
+      href: "/bcv_usdt",
       value: bcvToUsdtRate,
       change: 0,
       icon: "bcv",
@@ -167,6 +171,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "usdt-to-bcv",
       title: "USDT -> BCV",
+      href: "/usdt_bcv",
       value: usdtToBcvRate,
       change: 0,
       icon: "binance",
@@ -180,6 +185,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     {
       id: "bcv-eur",
       title: "Tasa Euro BCV",
+      href: "/eur",
       value: bcvEurPrice,
       change: 0, // TODO: track daily change
       icon: "eu",

@@ -2,18 +2,26 @@ import type { APIRoute } from "astro";
 
 export const GET: APIRoute = ({ request, site }) => {
   const origin = site?.href ?? new URL(request.url).origin;
-  const url = new URL("/", origin).href;
+  const paths = ["/", "/bcv", "/usdt", "/usdt_bcv", "/bcv_usdt", "/eur"];
   const lastmod = new Date().toISOString();
+  const urls = paths
+    .map((path) => {
+      const url = new URL(path, origin).href;
+      const priority = path === "/" ? "1.0" : "0.8";
+
+      return `  <url>
+    <loc>${url}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+    })
+    .join("\n");
 
   return new Response(
     `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>hourly</changefreq>
-    <priority>1.0</priority>
-  </url>
+${urls}
 </urlset>
 `,
     {

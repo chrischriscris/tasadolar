@@ -148,6 +148,7 @@ function initConverter(): void {
     "converter-input",
   ) as HTMLInputElement | null;
   const symbolEl = document.getElementById("converter-symbol");
+  const ratesList = document.getElementById("rates-list");
   const resetButtons = document.querySelectorAll<HTMLButtonElement>(
     "[data-converter-reset]",
   );
@@ -232,6 +233,7 @@ function initConverter(): void {
     state.activeTab = tab;
     saveState(state);
     render();
+    if (ratesList) ratesList.scrollTop = 0;
   });
 
   input.addEventListener("input", () => {
