@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "test:watch": "vitest",
     "preview": "astro preview",
     "deploy": "npm run build && wrangler deploy",
@@ -24,6 +25,7 @@
     "tailwindcss": "^4.2.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "lefthook": "^2.1.3",
     "prettier": "3.8.1",
     "prettier-plugin-astro": "0.14.1",
