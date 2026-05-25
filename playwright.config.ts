@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   testMatch: "**/*.e2e.ts",
+  fullyParallel: true,
   reporter: [["list"], ["html", { open: "never" }]],
   timeout: 30_000,
   expect: {
@@ -19,6 +20,7 @@ export default defineConfig({
     url: "http://127.0.0.1:4321",
     reuseExistingServer: !process.env.CI,
   },
+  workers: process.env.CI ? 2 : undefined,
   projects: [
     {
       name: "chromium",
