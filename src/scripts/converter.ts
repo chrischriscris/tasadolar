@@ -17,6 +17,7 @@ type RateRowData = {
   currency: Tab;
   baseRate: number;
   displayUnit: "BS" | "USD";
+  visibleTabs: Tab[];
   available: boolean;
 };
 
@@ -44,18 +45,28 @@ function isTab(value: string | undefined): value is Tab {
 }
 
 function readRateRowData(row: HTMLElement): RateRowData | null {
-  const { rateRow, currency, baseRate, displayUnit, rateAvailable } =
-    row.dataset;
+  const {
+    rateRow,
+    currency,
+    baseRate,
+    displayUnit,
+    visibleTabs,
+    rateAvailable,
+  } = row.dataset;
   if (!rateRow || !isTab(currency)) return null;
 
   const parsedBaseRate = ceilToDecimals(parseFloat(baseRate ?? "0"));
   const parsedDisplayUnit = displayUnit === "USD" ? "USD" : "BS";
+  const parsedVisibleTabs = (visibleTabs ?? currency)
+    .split(/[\s,]+/)
+    .filter(isTab);
 
   return {
     id: rateRow,
     currency,
     baseRate: parsedBaseRate,
     displayUnit: parsedDisplayUnit,
+    visibleTabs: parsedVisibleTabs.length > 0 ? parsedVisibleTabs : [currency],
     available: rateAvailable !== "false" && parsedBaseRate > 0,
   };
 }
@@ -170,11 +181,12 @@ function initConverter(): void {
 
     rateRows.forEach((row) => {
       const { element, data } = row;
+      if (!data.visibleTabs.includes(state.activeTab)) {
+        element.style.display = "none";
+        return;
+      }
+
       if (state.activeTab === "BS") {
-        if (data.id === "bcv-to-usdt" || data.id === "usdt-to-bcv") {
-          element.style.display = "none";
-          return;
-        }
         element.style.display = "";
         if (!data.available) {
           setRateText(row, "No disponible");
@@ -184,11 +196,6 @@ function initConverter(): void {
           data.baseRate > 0 ? ceilToDecimals(amount / data.baseRate) : 0;
         const unit = data.currency === "EUR" ? "€" : "$";
         setRateText(row, `${unit} ${formatNumber(converted, RATE_DECIMALS)}`);
-        return;
-      }
-
-      if (data.currency !== state.activeTab) {
-        element.style.display = "none";
         return;
       }
 

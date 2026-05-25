@@ -67,12 +67,18 @@
   }
 }
 
-html[data-active-tab="USD"]
-  [data-rate-row][data-currency]:not([data-currency="USD"]),
-html[data-active-tab="EUR"]
-  [data-rate-row][data-currency]:not([data-currency="EUR"]),
-html[data-active-tab="BS"] [data-rate-row="bcv-to-usdt"],
-html[data-active-tab="BS"] [data-rate-row="usdt-to-bcv"] {
+html[data-tab-filtering="true"][data-active-tab="USD"]
+  [data-rate-row][data-visible-tab-tokens]:not(
+    [data-visible-tab-tokens~="USD"]
+  ),
+html[data-tab-filtering="true"][data-active-tab="EUR"]
+  [data-rate-row][data-visible-tab-tokens]:not(
+    [data-visible-tab-tokens~="EUR"]
+  ),
+html[data-tab-filtering="true"][data-active-tab="BS"]
+  [data-rate-row][data-visible-tab-tokens]:not(
+    [data-visible-tab-tokens~="BS"]
+  ) {
   display: none;
 }
 

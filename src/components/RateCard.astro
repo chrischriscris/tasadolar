@@ -43,6 +43,8 @@ const fullValueText =
       data-currency={rate.currency}
       data-base-rate={rate.value ?? ""}
       data-display-unit={rate.displayUnit}
+      data-visible-tabs={rate.visibleTabs.join(",")}
+      data-visible-tab-tokens={rate.visibleTabs.join(" ")}
       data-rate-available={rate.value !== null ? "true" : "false"}
     >
       <div class="flex h-10 w-10 shrink-0 items-center justify-center">
@@ -94,6 +96,8 @@ const fullValueText =
       data-currency={rate.currency}
       data-base-rate={rate.value ?? ""}
       data-display-unit={rate.displayUnit}
+      data-visible-tabs={rate.visibleTabs.join(",")}
+      data-visible-tab-tokens={rate.visibleTabs.join(" ")}
       data-rate-available={rate.value !== null ? "true" : "false"}
     >
       <div class="flex h-10 w-10 shrink-0 items-center justify-center">

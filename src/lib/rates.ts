@@ -46,6 +46,7 @@ export interface RateCardData {
   icon: "bcv" | "us" | "binance" | "eu";
   currency: "USD" | "EUR" | "BS";
   displayUnit: "BS" | "USD";
+  visibleTabs: ("USD" | "EUR" | "BS")[];
   error?: string;
 }
 
@@ -141,6 +142,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "bcv",
       currency: "USD",
       displayUnit: "BS",
+      visibleTabs: ["USD", "BS"],
       error: bcvUsd.error,
     },
     {
@@ -152,6 +154,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "binance",
       currency: "USD",
       displayUnit: "BS",
+      visibleTabs: ["USD", "BS"],
       error: binance.error,
     },
     {
@@ -163,6 +166,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "bcv",
       currency: "USD",
       displayUnit: "USD",
+      visibleTabs: ["USD"],
       error:
         bcvUsdPrice === null || binancePrice === null
           ? "BCV or Binance unavailable"
@@ -177,6 +181,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "binance",
       currency: "USD",
       displayUnit: "USD",
+      visibleTabs: ["USD"],
       error:
         bcvUsdPrice === null || binancePrice === null
           ? "BCV or Binance unavailable"
@@ -191,6 +196,7 @@ export async function fetchAllRates(): Promise<AllRates> {
       icon: "eu",
       currency: "EUR",
       displayUnit: "BS",
+      visibleTabs: ["EUR", "BS"],
       error: bcvEur.error,
     },
   ];
