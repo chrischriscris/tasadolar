@@ -6,6 +6,7 @@ export type RateDefinition = {
   id: string;
   slug: string;
   title: string;
+  navLabel: string;
   cardTitle: string;
   inputSymbol: string;
   inputLabel: string;
@@ -20,6 +21,7 @@ export const rateDefinitions = [
     id: "bcv-usd",
     slug: "bcv",
     title: "Dólar BCV",
+    navLabel: "USD",
     cardTitle: "Tasa BCV",
     inputSymbol: "$",
     inputLabel: "USD",
@@ -32,6 +34,7 @@ export const rateDefinitions = [
     id: "binance-usd",
     slug: "usdt",
     title: "USDT Binance",
+    navLabel: "USDT",
     cardTitle: "Tasa Binance (USDT)",
     inputSymbol: "$",
     inputLabel: "USDT",
@@ -44,6 +47,7 @@ export const rateDefinitions = [
     id: "usdt-to-bcv",
     slug: "usdt_bcv",
     title: "USDT a BCV",
+    navLabel: "BCV to USD",
     cardTitle: "USDT -> BCV",
     inputSymbol: "$",
     inputLabel: "USDT",
@@ -56,6 +60,7 @@ export const rateDefinitions = [
     id: "bcv-to-usdt",
     slug: "bcv_usdt",
     title: "BCV a USDT",
+    navLabel: "BCV to USDT",
     cardTitle: "BCV -> USDT",
     inputSymbol: "$",
     inputLabel: "BCV",
@@ -68,6 +73,7 @@ export const rateDefinitions = [
     id: "bcv-eur",
     slug: "eur",
     title: "Euro BCV",
+    navLabel: "EUR",
     cardTitle: "Tasa Euro BCV",
     inputSymbol: "€",
     inputLabel: "EUR",
