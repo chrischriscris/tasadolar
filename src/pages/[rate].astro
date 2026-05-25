@@ -33,6 +33,12 @@ const rateText =
       )}`;
 const pageTitle = `${route.title} hoy: ${rateText} | TasaDolar`;
 const pageDescription = `Calcula ${route.inputLabel} con la tasa ${route.title} de hoy: ${rateText}.`;
+const currentRouteIndex = rateRoutes.findIndex(
+  ({ slug }) => slug === route.slug,
+);
+const previousRoute =
+  rateRoutes[(currentRouteIndex - 1 + rateRoutes.length) % rateRoutes.length];
+const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
 ---
 
 <Layout
@@ -40,51 +46,76 @@ const pageDescription = `Calcula ${route.inputLabel} con la tasa ${route.title} 
   description={pageDescription}
   canonicalPath={`/${route.slug}`}
 >
-  <main class="mx-auto flex h-full max-w-md flex-col justify-center gap-6 p-4">
-    <a
-      href="/"
-      class="mx-auto flex items-center gap-3 text-white/50 transition-colors hover:text-white"
-      aria-label="Volver a TasaDolar"
+  <div class="mx-auto flex h-full max-w-md flex-col p-4">
+    <nav
+      class="flex items-center justify-between gap-3 py-2"
+      aria-label="Tasas"
     >
-      <Image
-        src="/icons/icon-192x192.png"
-        alt=""
-        width="36"
-        height="36"
-        loading="eager"
-        class="h-9 w-9 object-cover"
-        aria-hidden="true"
-      />
-      <span class="text-2xl font-bold tracking-tight">TasaDolar</span>
-    </a>
+      <a
+        href={`/${previousRoute.slug}`}
+        class="flex min-w-0 flex-1 items-center gap-1.5 text-sm font-semibold text-white/45 transition-colors hover:text-white"
+        aria-label={`Ver ${previousRoute.title}`}
+      >
+        <span aria-hidden="true">&lt;</span>
+        <span class="truncate">{previousRoute.navLabel}</span>
+      </a>
 
-    <section class="flex flex-col gap-3">
-      <div class="flex items-end justify-between gap-3">
-        <div>
-          <p
-            class="text-xs font-semibold tracking-[0.2em] text-white/35 uppercase"
-          >
-            {route.inputLabel}
+      <a
+        href={`/${nextRoute.slug}`}
+        class="flex min-w-0 flex-1 items-center justify-end gap-1.5 text-sm font-semibold text-white/45 transition-colors hover:text-white"
+        aria-label={`Ver ${nextRoute.title}`}
+      >
+        <span class="truncate">{nextRoute.navLabel}</span>
+        <span aria-hidden="true">&gt;</span>
+      </a>
+    </nav>
+
+    <main class="flex flex-1 flex-col justify-center gap-6">
+      <a
+        href="/"
+        class="mx-auto flex items-center gap-3 text-white/50 transition-colors hover:text-white"
+        aria-label="Volver a TasaDolar"
+      >
+        <Image
+          src="/icons/icon-192x192.png"
+          alt=""
+          width="36"
+          height="36"
+          loading="eager"
+          class="h-9 w-9 object-cover"
+          aria-hidden="true"
+        />
+        <span class="text-2xl font-bold tracking-tight">TasaDolar</span>
+      </a>
+
+      <section class="flex flex-col gap-3">
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <p
+              class="text-xs font-semibold tracking-[0.2em] text-white/35 uppercase"
+            >
+              {route.inputLabel}
+            </p>
+            <h1 class="text-3xl font-black tracking-tight text-white">
+              {route.title}
+            </h1>
+          </div>
+          <p class="shrink-0 text-right text-xs text-white/40">
+            {lastUpdatedText}
           </p>
-          <h1 class="text-3xl font-black tracking-tight text-white">
-            {route.title}
-          </h1>
         </div>
-        <p class="shrink-0 text-right text-xs text-white/40">
-          {lastUpdatedText}
-        </p>
-      </div>
 
-      <RateCard rate={{ ...rate, href: undefined }} />
-    </section>
+        <RateCard rate={{ ...rate, href: undefined }} />
+      </section>
 
-    <section class="flex flex-col gap-2">
-      <label for="converter-input" class="text-sm font-medium text-white/50">
-        Monto en {route.inputLabel}
-      </label>
-      <ConverterInput symbol={route.inputSymbol} />
-    </section>
-  </main>
+      <section class="flex flex-col gap-2">
+        <label for="converter-input" class="text-sm font-medium text-white/50">
+          Monto en {route.inputLabel}
+        </label>
+        <ConverterInput symbol={route.inputSymbol} />
+      </section>
+    </main>
+  </div>
 </Layout>
 
 <script>
