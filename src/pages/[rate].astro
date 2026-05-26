@@ -7,16 +7,12 @@ import { rateRoutes, type RateRoute } from "@/lib/rate-routes";
 import { fetchAllRates, type RateCardData } from "@/lib/rates";
 import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
 
-export const prerender = true;
+const route = rateRoutes.find(({ slug }) => slug === Astro.params.rate) as
+  | RateRoute
+  | undefined;
 
-export function getStaticPaths() {
-  return rateRoutes.map((route) => ({
-    params: { rate: route.slug },
-    props: { route },
-  }));
-}
+if (!route) return Astro.redirect("/");
 
-const { route } = Astro.props as { route: RateRoute };
 const { cards, lastUpdatedText } = await fetchAllRates();
 const rate = cards.find((card) => card.id === route.id) as
   | RateCardData
