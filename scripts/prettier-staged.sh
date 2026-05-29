@@ -16,6 +16,6 @@ while IFS= read -r -d '' file; do
 done < <(git diff --cached --name-only --diff-filter=ACMR -z)
 
 if [ "${#files[@]}" -gt 0 ]; then
-  npx prettier --write "${files[@]}"
+  bunx prettier --write "${files[@]}"
   git add -- "${files[@]}"
 fi

@@ -4,4 +4,4 @@ pre-commit:
     prettier:
       run: bash scripts/prettier-staged.sh
     build:
-      run: npm run build
+      run: bun run build
