@@ -8,7 +8,7 @@ Guidance for AI coding agents working in this repository.
 
 ## Commands
 
-`npm run dev` / `npm run build` / `npm run preview`. Format with `npx prettier --check .`. No test runner.
+`bun run dev` / `bun run build` / `bun run preview`. Format with `bunx prettier --check .`. Test with `bun run test`.
 
 ## Stack
 
