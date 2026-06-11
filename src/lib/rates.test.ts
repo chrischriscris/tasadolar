@@ -98,4 +98,19 @@ describe("fetchAllRates", () => {
       "BCV or Binance unavailable",
     );
   });
+
+  it("uses a successful Binance fallback without disabling derived rates", async () => {
+    const { fetchAllRates } = await importRatesWithMocks({
+      binance: { ...binanceSuccess, source: "Paralelo" },
+    });
+
+    const result = await fetchAllRates();
+    const binanceCard = result.cards.find((card) => card.id === "binance-usd");
+
+    expect(binanceCard?.title).toBe("Tasa Binance (USDT)");
+    expect(binanceCard?.value).toBe(125);
+    expect(result.cards.find((card) => card.id === "usdt-to-bcv")?.value).toBe(
+      1.25,
+    );
+  });
 });
