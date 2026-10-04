@@ -4,27 +4,30 @@
 // Single entry point to fetch all exchange rates and compute derived values.
 // Import `fetchAllRates()` from any Astro frontmatter to get everything.
 //
+// Called per request from Astro frontmatter and from src/pages/rates.json.ts
+// and src/pages/llms.txt.ts.
+//
 // ARCHITECTURE NOTES (for when you revisit this):
 // ------------------------------------------------
-// - Each source (bcv.ts, binance.ts) handles its own fetch + error handling.
-// - This module combines them and computes derived data (exchange gap, timestamps).
-// - The RateCard shape matches what `RateCard.astro` expects as props.
-// - If a source fails, its entry gets `value: 0` so the UI still renders.
+// - Each source (bcv.ts, binance.ts) handles its own fetch + error handling
+//   and returns a `Rate` (see types.ts).
+// - USDT uses Binance P2P, falling back to dolarapi's "paralelo" rate.
+// - Results are cached in memory per Worker isolate for CACHE_TTL_MS
+//   (ERROR_CACHE_TTL_MS when any source failed or is stale).
+// - If a source fails, its last good value (up to STALE_MAX_MS old) is reused
+//   and marked `stale`; with none available the card gets `value: null` plus
+//   an `error` message, and derived rates that depend on it are null too.
 //
-// WHAT TO CHANGE WHEN ADDING A NEW RATE SOURCE:
+// WHAT TO CHANGE WHEN ADDING A NEW RATE:
 // ------------------------------------------------
-// 1. Create src/lib/<source>.ts exporting a function that returns Promise<Rate>
-// 2. Add the fetch call in fetchAllRates() below
-// 3. Add a new entry in the `cards` array
-// 4. Update RateCard.astro icon types if needed
-//
-// WHAT TO CHANGE WHEN SWITCHING TO SSR / CLIENT-SIDE:
-// ------------------------------------------------
-// - This module works at build time (static) or server time (SSR).
-// - For client-side fetching, you'd create an API route (see main branch
-//   src/pages/api/rates.ts) that calls this same module.
-// - The components already read `data-base-rate` from DOM attributes,
-//   so client-side updates only need to patch those attributes + text.
+// 1. Add an entry to `rateDefinitions` in rate-definitions.ts
+// 2. For a new upstream, create src/lib/<source>.ts returning Promise<Rate>
+//    and call it in fetchAllRates() below
+// 3. Add its value to the `values` map here and its agent description in
+//    agent-rates.ts (both are typed Record<RateId, ...>, so the compiler
+//    lists what is missing)
+// 4. Add an icon if needed (`RateIcon` in rate-definitions.ts and the icon
+//    map in src/components/RateCard.astro)
 // ---------------------------------------------------------------------------
 
 import type { Rate, RateResult } from "./types";

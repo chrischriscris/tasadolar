@@ -4,9 +4,10 @@
 //
 // Endpoints used:
 //   - https://ve.dolarapi.com/v1/dolares  → [{ fuente: "oficial", promedio, ... }]
+//                                           (also the fuente: "paralelo" entry)
 //   - https://ve.dolarapi.com/v1/euros    → [{ fuente: "oficial", promedio, ... }]
 //
-// TODO: Consider adding retry logic (see main branch bcv.ts for reference)
+// TODO: Consider adding retry logic
 // TODO: Consider adding fallback URLs
 // ---------------------------------------------------------------------------
 

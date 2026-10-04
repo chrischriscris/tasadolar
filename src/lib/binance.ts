@@ -4,10 +4,10 @@
 // Fetches the top 10 BUY and SELL ads from Binance P2P for USDT/VES,
 // then calculates a mid-market price from the best bid/ask.
 //
-// This is the same approach used in the main branch.
-// It does NOT use dolarapi.com's "paralelo" – it queries Binance directly.
+// This module only queries Binance. When it fails, rates.ts falls back to
+// dolarapi's "paralelo" rate (see pickUsdtRate); the returned `source` says
+// which one was used.
 //
-// TODO: Consider caching to avoid hitting Binance on every build
 // TODO: Consider adding payTypes filter for more accurate results
 // ---------------------------------------------------------------------------
 
