@@ -107,3 +107,41 @@ test.describe("last updated label", () => {
     await expect(badge).toBeHidden();
   });
 });
+
+test.describe("BCV effective date", () => {
+  const cases = [
+    {
+      path: "/",
+      id: "bcv-usd",
+      name: "/ shows the value date on the BCV card",
+    },
+    {
+      path: "/eur/",
+      id: "bcv-eur",
+      name: "/eur/ shows the value date on the euro card",
+    },
+  ];
+
+  for (const { path, id, name } of cases) {
+    test(name, async ({ page }) => {
+      await page.goto(path);
+
+      const time = page.locator(
+        `[data-rate-row="${id}"] time[data-effective-date]`,
+      );
+      await expect(time).toBeVisible();
+      await expect(time).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T/);
+      await expect(time).toContainText("Fecha valor");
+    });
+  }
+
+  test("value date does not overflow at 320px", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto("/");
+
+    const fits = await page
+      .locator('[data-rate-row="bcv-usd"]')
+      .evaluate((el) => el.scrollWidth <= el.clientWidth);
+    expect(fits).toBe(true);
+  });
+});

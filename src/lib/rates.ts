@@ -56,6 +56,8 @@ export interface RateCardData {
   displayUnit: DisplayUnit;
   visibleTabs: CurrencyTab[];
   error?: string;
+  /** BCV value date (ISO), only on official BCV cards with a value */
+  effectiveDate?: string;
 }
 
 type RateValue = {
@@ -147,6 +149,11 @@ export async function fetchAllRates(): Promise<AllRates> {
     "bcv-eur": { value: bcvEurPrice, error: bcvEur.error },
   } satisfies Record<RateId, RateValue>;
 
+  const effectiveDates: Partial<Record<RateId, string>> = {
+    "bcv-usd": bcvUsdPrice !== null ? bcvUsd.updatedAt : undefined,
+    "bcv-eur": bcvEurPrice !== null ? bcvEur.updatedAt : undefined,
+  };
+
   const cards: RateCardData[] = rateDefinitions.map((definition) => ({
     id: definition.id,
     title: definition.cardTitle,
@@ -158,6 +165,7 @@ export async function fetchAllRates(): Promise<AllRates> {
     displayUnit: definition.displayUnit,
     visibleTabs: [...definition.visibleTabs],
     error: values[definition.id].error,
+    effectiveDate: effectiveDates[definition.id],
   }));
 
   // -- Compute exchange gap ---------------------------------------------------

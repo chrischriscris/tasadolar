@@ -69,6 +69,12 @@ describe("fetchAllRates", () => {
       "bcv-to-usdt",
       "bcv-eur",
     ]);
+    const byId = (id: string) => result.cards.find((card) => card.id === id);
+    expect(byId("bcv-usd")?.effectiveDate).toBe("2026-05-25T10:00:00.000Z");
+    expect(byId("bcv-eur")?.effectiveDate).toBe("2026-05-25T09:00:00.000Z");
+    expect(byId("binance-usd")?.effectiveDate).toBeUndefined();
+    expect(byId("usdt-to-bcv")?.effectiveDate).toBeUndefined();
+    expect(byId("bcv-to-usdt")?.effectiveDate).toBeUndefined();
     expect(result.cards.find((card) => card.id === "bcv-usd")?.value).toBe(
       100.01,
     );
@@ -78,6 +84,18 @@ describe("fetchAllRates", () => {
     expect(result.cards.find((card) => card.id === "usdt-to-bcv")?.value).toBe(
       1.25,
     );
+  });
+
+  it("omits the effective date when BCV fails", async () => {
+    const { fetchAllRates } = await importRatesWithMocks({
+      bcvUsd: { source: "BCV", error: "HTTP 503" },
+    });
+
+    const result = await fetchAllRates();
+    const byId = (id: string) => result.cards.find((card) => card.id === id);
+
+    expect(byId("bcv-usd")?.effectiveDate).toBeUndefined();
+    expect(byId("bcv-eur")?.effectiveDate).toBe("2026-05-25T09:00:00.000Z");
   });
 
   it("marks derived rates unavailable when a source fails", async () => {

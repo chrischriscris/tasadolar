@@ -10,3 +10,15 @@ const updatedAtFormatter = new Intl.DateTimeFormat("es-VE", {
 export function formatUpdatedAt(date: Date): string {
   return updatedAtFormatter.format(date);
 }
+
+const effectiveDateFormatter = new Intl.DateTimeFormat("es-VE", {
+  timeZone: "America/Caracas",
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+
+/** BCV value date, e.g. "vie, 2 oct." */
+export function formatEffectiveDate(iso: string): string {
+  return effectiveDateFormatter.format(new Date(iso));
+}

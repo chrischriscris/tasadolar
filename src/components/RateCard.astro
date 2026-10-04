@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
+import { formatEffectiveDate } from "@/lib/date-format";
 import type { RateCardData } from "@/lib/rates";
 
 interface Props {
@@ -8,6 +9,10 @@ interface Props {
 }
 
 const { rate } = Astro.props;
+
+const effectiveDateText = rate.effectiveDate
+  ? formatEffectiveDate(rate.effectiveDate)
+  : undefined;
 
 const getIconUrl = (iconType: string): string => {
   switch (iconType) {
@@ -59,7 +64,20 @@ const fullValueText =
   </div>
 
   <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-    <span class="text-xs font-medium text-white/80">{rate.title}</span>
+    <span class="flex min-w-0 items-baseline gap-1 text-xs font-medium">
+      <span class="shrink-0 text-white/80">{rate.title}</span>
+      {
+        effectiveDateText && (
+          <time
+            datetime={rate.effectiveDate}
+            data-effective-date
+            class="truncate text-white/40"
+          >
+            · Fecha valor {effectiveDateText}
+          </time>
+        )
+      }
+    </span>
     <div class="relative">
       <span
         class="text-teal peer block truncate text-xl font-bold"
