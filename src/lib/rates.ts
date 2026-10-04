@@ -66,8 +66,8 @@ export interface AllRates {
   /** Rate cards to pass to <RatesList rates={cards} /> */
   cards: RateCardData[];
 
-  /** Exchange gap percentage (USDT vs official BCV) */
-  exchangeGapPercentage: number;
+  /** Exchange gap percentage (USDT vs official BCV); null when either rate is unavailable */
+  exchangeGapPercentage: number | null;
 
   /** Human-readable "last updated" text */
   lastUpdatedText: string;
@@ -181,7 +181,7 @@ export async function fetchAllRates(): Promise<AllRates> {
   const exchangeGapPercentage =
     bcvUsdPrice !== null && binancePrice !== null
       ? Number((((binancePrice - bcvUsdPrice) / bcvUsdPrice) * 100).toFixed(2))
-      : 0;
+      : null;
 
   // -- Format last updated text ----------------------------------------------
   const lastUpdatedText = formatLastUpdated([

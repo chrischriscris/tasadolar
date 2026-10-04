@@ -84,7 +84,7 @@ describe("fetchAllRates", () => {
 
     const result = await fetchAllRates();
 
-    expect(result.exchangeGapPercentage).toBe(0);
+    expect(result.exchangeGapPercentage).toBeNull();
     expect(result.cards.find((card) => card.id === "binance-usd")?.value).toBe(
       null,
     );
@@ -97,6 +97,16 @@ describe("fetchAllRates", () => {
     expect(result.cards.find((card) => card.id === "bcv-to-usdt")?.error).toBe(
       "BCV or Binance unavailable",
     );
+  });
+
+  it("marks the exchange gap unavailable when BCV fails", async () => {
+    const { fetchAllRates } = await importRatesWithMocks({
+      bcvUsd: { source: "BCV", error: "HTTP 503" },
+    });
+
+    const result = await fetchAllRates();
+
+    expect(result.exchangeGapPercentage).toBeNull();
   });
 
   it("uses a successful Binance fallback without disabling derived rates", async () => {
