@@ -14,6 +14,28 @@ describe("ceilToDecimals", () => {
     expect(ceilToDecimals(1.2341, 3)).toBe(1.235);
   });
 
+  it("keeps values that already have two decimals exact", () => {
+    expect(ceilToDecimals(1.1)).toBe(1.1);
+    expect(ceilToDecimals(0.07)).toBe(0.07);
+    expect(ceilToDecimals(1.11)).toBe(1.11);
+    expect(ceilToDecimals(128.02)).toBe(128.02);
+    expect(ceilToDecimals(10 * 866.02)).toBe(8660.2);
+    expect(ceilToDecimals(3 * 866.08)).toBe(2598.24);
+  });
+
+  it("is idempotent for every two-decimal value below 1000", () => {
+    const wrong: number[] = [];
+    for (let i = 1; i < 100_000; i++) {
+      const value = i / 100;
+      if (ceilToDecimals(value) !== value) wrong.push(value);
+    }
+    expect(wrong).toEqual([]);
+  });
+
+  it("still rounds real extra decimals up", () => {
+    expect(ceilToDecimals(866.5612)).toBe(866.57);
+  });
+
   it("returns zero for non-finite values", () => {
     expect(ceilToDecimals(Number.NaN)).toBe(0);
     expect(ceilToDecimals(Number.POSITIVE_INFINITY)).toBe(0);
