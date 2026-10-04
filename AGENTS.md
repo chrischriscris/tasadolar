@@ -8,7 +8,7 @@ Guidance for AI coding agents working in this repository.
 
 ## Commands
 
-`bun run dev` / `bun run build` / `bun run preview`. Format with `bunx prettier --check .`. Test with `bun run test`.
+`bun run dev` / `bun run build` / `bun run preview`. Format with `bunx prettier --check .`. Typecheck with `bun run typecheck`. Test with `bun run test`.
 
 ## Stack
 
