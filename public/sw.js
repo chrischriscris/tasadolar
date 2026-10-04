@@ -5,10 +5,17 @@ const APP_SHELL = [
   "/apple-touch-icon.png",
   "/icons/icon-192x192.png",
   "/icons/icon-512x512.png",
-  "/splash/apple-splash-1170x2532.png",
-  "/splash/apple-splash-1179x2556.png",
-  "/splash/apple-splash-1284x2778.png",
-  "/splash/apple-splash-1290x2796.png",
+];
+
+// Only these same-origin URLs found in a page are worth caching offline;
+// page links (/bcv/ …) and iOS splash images are deliberately excluded.
+const PAGE_ASSET_PREFIXES = [
+  "/_astro/",
+  "/_image",
+  "/icons/",
+  "/favicon",
+  "/apple-touch-icon.png",
+  "/app.webmanifest",
 ];
 
 self.addEventListener("install", (event) => {
@@ -130,10 +137,15 @@ async function cachePageAssets(response) {
   const cache = await caches.open(CACHE_NAME);
   const html = await response.text();
   const urls = Array.from(html.matchAll(/(?:src|href)="([^"]+)"/g))
-    .map((match) => new URL(match[1], self.location.origin))
+    // Attribute values are HTML-escaped: "&amp;" must become "&" or the
+    // query string breaks (e.g. /_image?…&amp;f=webp returns 400).
+    .map((match) => match[1].replaceAll("&amp;", "&"))
+    .map((value) => new URL(value, self.location.origin))
     .filter((url) => url.origin === self.location.origin)
-    .map((url) => url.pathname + url.search)
-    .filter((url) => !url.startsWith("/sw.js"));
+    .filter((url) =>
+      PAGE_ASSET_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)),
+    )
+    .map((url) => url.pathname + url.search);
 
   await Promise.allSettled([...new Set(urls)].map((url) => cache.add(url)));
 }
