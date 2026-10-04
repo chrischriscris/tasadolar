@@ -1,4 +1,6 @@
 ---
+import { formatNumber } from "@/lib/number-format";
+
 interface Props {
   percentage: number | null;
 }
@@ -7,11 +9,11 @@ const { percentage } = Astro.props;
 
 const isPositive = percentage !== null && percentage >= 0;
 const pillText =
-  percentage === null ? "No disponible" : `${percentage.toFixed(2)}%`;
+  percentage === null ? "No disponible" : `${formatNumber(percentage)}%`;
 const delta =
   percentage === null
     ? "No disponible"
-    : `${isPositive ? "+" : ""}${percentage.toFixed(2)}%`;
+    : `${isPositive ? "+" : ""}${formatNumber(percentage)}%`;
 const tooltip =
   percentage === null
     ? "Brecha no disponible: falta la tasa BCV o USDT"

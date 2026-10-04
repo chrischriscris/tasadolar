@@ -57,3 +57,27 @@ test.describe("rate routes", () => {
     });
   }
 });
+
+test.describe("exchange gap", () => {
+  test("shows an es-VE percentage, or 'No disponible' when a rate is missing", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    const bcvAvailable = await page
+      .locator('[data-rate-row="bcv-usd"]')
+      .getAttribute("data-rate-available");
+    const usdtAvailable = await page
+      .locator('[data-rate-row="binance-usd"]')
+      .getAttribute("data-rate-available");
+    const gapText = (
+      await page.locator("[data-exchange-gap]").textContent()
+    )?.trim();
+
+    if (bcvAvailable === "true" && usdtAvailable === "true") {
+      expect(gapText).toMatch(/^-?\d{1,3}(\.\d{3})*,\d{2}%$/);
+    } else {
+      expect(gapText).toBe("No disponible");
+    }
+  });
+});
