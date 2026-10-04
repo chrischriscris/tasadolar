@@ -7,6 +7,8 @@ export interface RateResult {
   price: number;
   updatedAt: string;
   source: string;
+  /** True when this is a last-known-good value served because the latest fetch failed */
+  stale?: boolean;
   error?: undefined;
 }
 

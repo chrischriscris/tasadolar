@@ -27,7 +27,7 @@
 //   so client-side updates only need to patch those attributes + text.
 // ---------------------------------------------------------------------------
 
-import type { Rate } from "./types";
+import type { Rate, RateResult } from "./types";
 import { fetchDolares, fetchBcvEur } from "./bcv";
 import { fetchBinanceP2PRate } from "./binance";
 import { ceilToDecimals } from "./number-format";
@@ -43,6 +43,31 @@ import {
 const CACHE_TTL_MS = 60_000;
 
 let cachedRates: { expiresAt: number; data: AllRates } | undefined;
+
+const ERROR_CACHE_TTL_MS = 15_000;
+const STALE_MAX_MS = 6 * 60 * 60_000;
+
+type SourceKey = keyof AllRates["raw"];
+
+const lastGood: Partial<Record<SourceKey, { rate: RateResult; at: number }>> =
+  {};
+
+/** Use the fresh rate, or the last good one (≤ 6 h old) when the fetch failed */
+function withLastGood(
+  key: SourceKey,
+  rate: Rate,
+  now: number,
+): { rate: Rate; at: number } {
+  if (rate.error === undefined) {
+    lastGood[key] = { rate, at: now };
+    return { rate, at: now };
+  }
+  const previous = lastGood[key];
+  if (previous && now - previous.at <= STALE_MAX_MS) {
+    return { rate: { ...previous.rate, stale: true }, at: previous.at };
+  }
+  return { rate, at: now };
+}
 
 /** Shape expected by RateCard.astro */
 export interface RateCardData {
@@ -116,13 +141,22 @@ export async function fetchAllRates(): Promise<AllRates> {
   if (cachedRates && cachedRates.expiresAt > now) return cachedRates.data;
 
   // -- Fetch all sources in parallel ----------------------------------------
-  const [dolares, binanceP2P, bcvEur] = await Promise.all([
+  const [dolares, binanceP2P, bcvEurFresh] = await Promise.all([
     fetchDolares(),
     fetchBinanceP2PRate(),
     fetchBcvEur(),
   ]);
-  const bcvUsd = dolares.oficial;
-  const binance = pickUsdtRate(binanceP2P, dolares.paralelo);
+  const usd = withLastGood("bcvUsd", dolares.oficial, now);
+  const usdt = withLastGood(
+    "binance",
+    pickUsdtRate(binanceP2P, dolares.paralelo),
+    now,
+  );
+  const eur = withLastGood("bcvEur", bcvEurFresh, now);
+  const bcvUsd = usd.rate;
+  const binance = usdt.rate;
+  const bcvEur = eur.rate;
+  const dataAt = Math.min(usd.at, usdt.at, eur.at);
 
   // -- Extract prices (null if failed) --------------------------------------
   const bcvUsdPrice = getRatePrice(bcvUsd);
@@ -187,12 +221,12 @@ export async function fetchAllRates(): Promise<AllRates> {
       : null;
 
   // -- Format last updated text ----------------------------------------------
-  const fetchedAt = new Date(now).toISOString();
+  const fetchedAt = new Date(dataAt).toISOString();
   const hasAnyRate = [bcvUsd, binance, bcvEur].some(
     (rate) => rate.error === undefined,
   );
   const lastUpdatedText = hasAnyRate
-    ? `Actualizado ${formatUpdatedAt(new Date(now))}`
+    ? `Actualizado ${formatUpdatedAt(new Date(dataAt))}`
     : "Sin datos";
 
   const data = {
@@ -203,6 +237,12 @@ export async function fetchAllRates(): Promise<AllRates> {
     raw: { bcvUsd, binance, bcvEur },
   };
 
-  cachedRates = { expiresAt: now + CACHE_TTL_MS, data };
+  const degraded = [bcvUsd, binance, bcvEur].some(
+    (rate) => rate.error !== undefined || rate.stale === true,
+  );
+  cachedRates = {
+    expiresAt: now + (degraded ? ERROR_CACHE_TTL_MS : CACHE_TTL_MS),
+    data,
+  };
   return data;
 }

@@ -192,3 +192,74 @@ describe("fetchAllRates", () => {
     );
   });
 });
+
+describe("fetchAllRates resilience", () => {
+  const failedDolares = {
+    oficial: { source: "BCV", error: "HTTP 503" },
+    paralelo: { source: "Paralelo", error: "HTTP 503" },
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T10:03:00.000Z"));
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    vi.doUnmock("./bcv");
+    vi.doUnmock("./binance");
+  });
+
+  it("serves the last good rate when a source starts failing", async () => {
+    const { fetchAllRates, mocks } = await importRatesWithMocks();
+    await fetchAllRates();
+
+    mocks.fetchDolares.mockResolvedValue(failedDolares);
+    vi.setSystemTime(new Date("2026-05-25T10:04:01.000Z"));
+    const result = await fetchAllRates();
+
+    expect(result.cards.find((card) => card.id === "bcv-usd")?.value).toBe(
+      100.01,
+    );
+    expect(result.raw.bcvUsd).toMatchObject({ stale: true });
+    expect(result.fetchedAt).toBe("2026-05-25T10:03:00.000Z");
+  });
+
+  it("drops stale rates after 6 hours", async () => {
+    const { fetchAllRates, mocks } = await importRatesWithMocks();
+    await fetchAllRates();
+
+    mocks.fetchDolares.mockResolvedValue(failedDolares);
+    vi.setSystemTime(new Date("2026-05-25T17:04:00.000Z"));
+    const result = await fetchAllRates();
+
+    expect(
+      result.cards.find((card) => card.id === "bcv-usd")?.value,
+    ).toBeNull();
+  });
+
+  it("retries sooner after an error", async () => {
+    const { fetchAllRates, mocks } = await importRatesWithMocks({
+      binance: { source: "Binance P2P", error: "HTTP 503" },
+      paralelo: { source: "Paralelo", error: "HTTP 503" },
+    });
+
+    await fetchAllRates();
+    vi.setSystemTime(new Date("2026-05-25T10:03:16.000Z"));
+    await fetchAllRates();
+
+    expect(mocks.fetchBinanceP2PRate).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the normal cache when everything succeeds", async () => {
+    const { fetchAllRates, mocks } = await importRatesWithMocks();
+
+    await fetchAllRates();
+    vi.setSystemTime(new Date("2026-05-25T10:03:30.000Z"));
+    await fetchAllRates();
+
+    expect(mocks.fetchBinanceP2PRate).toHaveBeenCalledTimes(1);
+  });
+});
