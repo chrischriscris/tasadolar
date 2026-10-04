@@ -13,7 +13,7 @@ const route = rateRoutes.find(({ slug }) => slug === Astro.params.rate) as
 
 if (!route) return Astro.redirect("/");
 
-const { cards, lastUpdatedText } = await fetchAllRates();
+const { cards, lastUpdatedText, fetchedAt } = await fetchAllRates();
 const rate = cards.find((card) => card.id === route.id) as
   | RateCardData
   | undefined;
@@ -97,7 +97,8 @@ const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
             </h1>
           </div>
           <p class="shrink-0 text-right text-xs text-white/40">
-            {lastUpdatedText}
+            <time datetime={fetchedAt} data-last-updated>{lastUpdatedText}</time
+            >
           </p>
         </div>
 

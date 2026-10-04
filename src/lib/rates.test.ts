@@ -57,7 +57,10 @@ describe("fetchAllRates", () => {
     const result = await fetchAllRates();
 
     expect(result.exchangeGapPercentage).toBe(24.99);
-    expect(result.lastUpdatedText).toBe("Actualizado hace 2m");
+    expect(result.lastUpdatedText).toMatch(/^Actualizado /);
+    expect(result.lastUpdatedText).toContain("25 may");
+    expect(result.lastUpdatedText).toContain("6:03");
+    expect(result.fetchedAt).toBe("2026-05-25T10:03:00.000Z");
     expect(result.cards).toHaveLength(5);
     expect(result.cards.map((card) => card.id)).toEqual([
       "bcv-usd",
@@ -107,6 +110,18 @@ describe("fetchAllRates", () => {
     const result = await fetchAllRates();
 
     expect(result.exchangeGapPercentage).toBeNull();
+  });
+
+  it("reports no data when every source fails", async () => {
+    const { fetchAllRates } = await importRatesWithMocks({
+      bcvUsd: { source: "BCV", error: "HTTP 503" },
+      binance: { source: "Binance P2P", error: "HTTP 503" },
+      bcvEur: { source: "BCV", error: "HTTP 503" },
+    });
+
+    const result = await fetchAllRates();
+
+    expect(result.lastUpdatedText).toBe("Sin datos");
   });
 
   it("uses a successful Binance fallback without disabling derived rates", async () => {

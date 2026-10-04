@@ -31,6 +31,7 @@ import type { Rate } from "./types";
 import { fetchBcvUsd, fetchBcvEur } from "./bcv";
 import { fetchBinanceRate } from "./binance";
 import { ceilToDecimals } from "./number-format";
+import { formatUpdatedAt } from "./date-format";
 import {
   rateDefinitions,
   type CurrencyTab,
@@ -69,8 +70,11 @@ export interface AllRates {
   /** Exchange gap percentage (USDT vs official BCV); null when either rate is unavailable */
   exchangeGapPercentage: number | null;
 
-  /** Human-readable "last updated" text */
+  /** "Actualizado <fecha y hora de Caracas>" or "Sin datos" */
   lastUpdatedText: string;
+
+  /** ISO 8601 time at which these rates were fetched */
+  fetchedAt: string;
 
   /** Raw Rate results if you need them */
   raw: {
@@ -86,34 +90,13 @@ function getRatePrice(rate: Rate): number | null {
   return ceilToDecimals(rate.price);
 }
 
-/** Format an ISO date into a relative Spanish "last updated" string */
-function formatLastUpdated(dates: (string | undefined)[]): string {
-  const validDates = dates
-    .filter((d): d is string => !!d)
-    .map((d) => new Date(d).getTime())
-    .filter((t) => !isNaN(t));
-
-  if (validDates.length === 0) return "Sin datos";
-
-  const mostRecent = new Date(Math.max(...validDates));
-  const now = new Date();
-  const diffMs = now.getTime() - mostRecent.getTime();
-  const diffMinutes = Math.floor(diffMs / 60_000);
-  const diffHours = Math.floor(diffMs / 3_600_000);
-
-  if (diffMinutes < 1) return "Actualizado hace un momento";
-  if (diffMinutes < 60) return `Actualizado hace ${diffMinutes}m`;
-  if (diffHours < 24) return `Actualizado hace ${diffHours}h`;
-  return `Actualizado: ${mostRecent.toLocaleDateString("es-VE")}`;
-}
-
 /**
  * Fetch all exchange rates from all sources.
  * Call this in Astro frontmatter:
  *
  * ```ts
  * import { fetchAllRates } from "@/lib/rates";
- * const { cards, exchangeGapPercentage, lastUpdatedText } = await fetchAllRates();
+ * const { cards, exchangeGapPercentage, lastUpdatedText, fetchedAt } = await fetchAllRates();
  * ```
  */
 export async function fetchAllRates(): Promise<AllRates> {
@@ -184,16 +167,19 @@ export async function fetchAllRates(): Promise<AllRates> {
       : null;
 
   // -- Format last updated text ----------------------------------------------
-  const lastUpdatedText = formatLastUpdated([
-    bcvUsd.updatedAt,
-    binance.updatedAt,
-    bcvEur.updatedAt,
-  ]);
+  const fetchedAt = new Date(now).toISOString();
+  const hasAnyRate = [bcvUsd, binance, bcvEur].some(
+    (rate) => rate.error === undefined,
+  );
+  const lastUpdatedText = hasAnyRate
+    ? `Actualizado ${formatUpdatedAt(new Date(now))}`
+    : "Sin datos";
 
   const data = {
     cards,
     exchangeGapPercentage,
     lastUpdatedText,
+    fetchedAt,
     raw: { bcvUsd, binance, bcvEur },
   };
 

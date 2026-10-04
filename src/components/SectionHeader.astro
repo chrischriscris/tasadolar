@@ -1,13 +1,16 @@
 ---
 interface Props {
   title: string;
-  lastUpdated?: string;
+  lastUpdated: string;
+  updatedAt: string;
 }
 
-const { title, lastUpdated = "Actualizado hace 5m" } = Astro.props;
+const { title, lastUpdated, updatedAt } = Astro.props;
 ---
 
 <div class="flex items-center justify-between">
   <h2 class="text-lg font-bold text-white">{title}</h2>
-  <span class="text-sm text-white/50">{lastUpdated}</span>
+  <time datetime={updatedAt} data-last-updated class="text-sm text-white/50"
+    >{lastUpdated}</time
+  >
 </div>
