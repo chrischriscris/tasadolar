@@ -175,8 +175,6 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
       media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
     />
     <title>{title}</title>
-    <link rel="preconnect" href="https://flagcdn.com" />
-    <link rel="preconnect" href="https://public.bnbstatic.com" />
     {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} />}
   </head>
   <body
