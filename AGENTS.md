@@ -22,6 +22,8 @@ Astro 6 (server), Tailwind v4 (Vite plugin), Cloudflare Workers. Path alias: `@/
 
 `src/lib/` fetches rates at build time: `bcv.ts` (BCV official via ve.dolarapi.com), `binance.ts` (USDT/VES mid-market via Binance P2P). `rates.ts` orchestrates all fetches in parallel and computes derived values (brecha cambiaria, BCV/USDT conversions). `types.ts` has the shared `Rate` discriminated union (narrow on `.error`).
 
+`agent-rates.ts` turns the same data into agent-friendly output (dot decimals, currency pairs, ISO timestamps) served by `pages/llms.txt.ts` and `pages/rates.json.ts`.
+
 `index.astro` calls `fetchAllRates()` in frontmatter, renders Astro components. Client-side `<script>` handles tab switching and converter via DOM `data-` attributes with es-VE number formatting.
 
 All components are `.astro` files — no React components despite the integration being available.
