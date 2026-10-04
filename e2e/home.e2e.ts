@@ -46,6 +46,26 @@ test.describe("home rate tabs", () => {
   }
 });
 
+test.describe("static icons", () => {
+  test("rate icons are same-origin static files", async ({ page, request }) => {
+    await page.goto("/");
+
+    const sources = await page
+      .locator("[data-rate-row] img")
+      .evaluateAll((images) =>
+        images.map((img) => img.getAttribute("src") ?? ""),
+      );
+
+    expect(sources.length).toBeGreaterThan(0);
+    for (const src of new Set(sources)) {
+      expect(src).toMatch(/^\/rate-icons\/[a-z]+\.png$/);
+      const response = await request.get(src);
+      expect(response.status()).toBe(200);
+      expect(response.headers()["content-type"]).toContain("image/png");
+    }
+  });
+});
+
 test.describe("rate routes", () => {
   for (const { slug, id, title } of routeRates) {
     test(`/${slug} shows ${title}`, async ({ page }) => {
