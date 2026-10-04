@@ -81,8 +81,8 @@ export interface AllRates {
 }
 
 function getRatePrice(rate: Rate): number | null {
-  if (rate.error || !Number.isFinite(rate.price) || rate.price <= 0)
-    return null;
+  if (rate.error !== undefined) return null;
+  if (!Number.isFinite(rate.price) || rate.price <= 0) return null;
   return ceilToDecimals(rate.price);
 }
 

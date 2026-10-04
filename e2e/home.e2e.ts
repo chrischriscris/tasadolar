@@ -25,6 +25,7 @@ const routeRates = [
 test.describe("home rate tabs", () => {
   for (const [tab, visibleIds] of Object.entries(tabRates)) {
     test(`${tab} tab shows only its rates`, async ({ page }) => {
+      const visibleRateIds = new Set<string>(visibleIds);
       await page.goto("/");
       await page.getByRole("button", { name: tab }).click();
 
@@ -35,7 +36,7 @@ test.describe("home rate tabs", () => {
 
       for (const id of allRateIds) {
         const row = page.locator(`[data-rate-row="${id}"]`);
-        if (visibleIds.includes(id)) {
+        if (visibleRateIds.has(id)) {
           await expect(row).toBeVisible();
         } else {
           await expect(row).toBeHidden();
