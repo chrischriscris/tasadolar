@@ -177,7 +177,7 @@ async function cacheFirst(request) {
   if (cached) return cached;
 
   const response = await fetchWithoutRedirectedResponse(request);
-  await cache.put(request, response.clone());
+  if (response.ok) await cache.put(request, response.clone());
   return response;
 }
 
