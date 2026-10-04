@@ -20,22 +20,30 @@ const bcvEurSuccess: Rate = {
   source: "BCV",
 };
 
+const paraleloSuccess: Rate = {
+  price: 124,
+  updatedAt: "2026-05-25T10:02:00.000Z",
+  source: "Paralelo",
+};
+
 async function buildWithMocks({
   bcvUsd = bcvUsdSuccess,
+  paralelo = paraleloSuccess,
   binance = binanceSuccess,
   bcvEur = bcvEurSuccess,
 }: {
   bcvUsd?: Rate;
+  paralelo?: Rate;
   binance?: Rate;
   bcvEur?: Rate;
 } = {}) {
   vi.resetModules();
   vi.doMock("./bcv", () => ({
-    fetchBcvUsd: vi.fn().mockResolvedValue(bcvUsd),
+    fetchDolares: vi.fn().mockResolvedValue({ oficial: bcvUsd, paralelo }),
     fetchBcvEur: vi.fn().mockResolvedValue(bcvEur),
   }));
   vi.doMock("./binance", () => ({
-    fetchBinanceRate: vi.fn().mockResolvedValue(binance),
+    fetchBinanceP2PRate: vi.fn().mockResolvedValue(binance),
   }));
 
   const { fetchAllRates } = await import("./rates");
@@ -94,14 +102,15 @@ describe("agent rates", () => {
 
   it("reports unavailable rates instead of zeros", async () => {
     const { feed, markdown } = await buildWithMocks({
-      binance: { source: "Paralelo", error: "HTTP 503" },
+      binance: { source: "Binance P2P", error: "HTTP 503" },
+      paralelo: { source: "Paralelo", error: "HTTP 502" },
     });
 
     expect(feed.exchangeGapPercentage).toBeNull();
     expect(feed.rates.find((rate) => rate.id === "binance-usd")).toMatchObject({
       value: null,
       updatedAt: null,
-      error: "HTTP 503",
+      error: "HTTP 503; fallback: HTTP 502",
     });
     expect(feed.rates.find((rate) => rate.id === "bcv-to-usdt")?.error).toBe(
       "BCV or Binance unavailable",

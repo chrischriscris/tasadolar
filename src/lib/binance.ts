@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------------
 
 import type { Rate, BinanceP2PResponse } from "./types";
-import { fetchParaleloUsd } from "./bcv";
 
 const BINANCE_P2P_URL =
   "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
@@ -57,7 +56,7 @@ async function fetchP2PAds(
   return prices;
 }
 
-async function fetchBinanceP2PRate(): Promise<Rate> {
+export async function fetchBinanceP2PRate(): Promise<Rate> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -86,16 +85,4 @@ async function fetchBinanceP2PRate(): Promise<Rate> {
   } finally {
     clearTimeout(timeout);
   }
-}
-
-/**
- * Fetch the Binance rate, falling back to dolarapi's paralelo rate.
- * Remove this wrapper and export fetchBinanceP2PRate directly when a
- * dedicated Binance proxy or replacement source is available.
- */
-export async function fetchBinanceRate(): Promise<Rate> {
-  const binance = await fetchBinanceP2PRate();
-  if (!binance.error) return binance;
-
-  return fetchParaleloUsd();
 }

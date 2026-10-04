@@ -43,27 +43,17 @@ function readValidPrice(value: number): number {
   return value;
 }
 
-/** Fetch the official BCV USD rate */
-export async function fetchBcvUsd(): Promise<Rate> {
-  return fetchDolarByFuente("oficial", "BCV");
-}
-
-/** Fetch the paralelo USD rate */
-export async function fetchParaleloUsd(): Promise<Rate> {
-  return fetchDolarByFuente("paralelo", "Paralelo");
-}
-
-async function fetchDolarByFuente(
+function readDolarEntry(
+  data: DolarApiResponse[],
   fuente: "oficial" | "paralelo",
   source: string,
-): Promise<Rate> {
+): Rate {
   try {
-    const data = await fetchWithTimeout(DOLARES_URL);
-    const result = pickByFuente(data, fuente);
-    if (!result) throw new Error(`No '${fuente}' entry in dolares response`);
+    const entry = pickByFuente(data, fuente);
+    if (!entry) throw new Error(`No '${fuente}' entry in dolares response`);
     return {
-      price: readValidPrice(result.promedio),
-      updatedAt: result.fechaActualizacion,
+      price: readValidPrice(entry.promedio),
+      updatedAt: entry.fechaActualizacion,
       source,
     };
   } catch (err) {
@@ -71,6 +61,28 @@ async function fetchDolarByFuente(
     console.error(`[${source}] Failed: ${message}`);
     return { source, error: message };
   }
+}
+
+/** Fetch the official BCV and paralelo USD rates with a single request */
+export async function fetchDolares(): Promise<{
+  oficial: Rate;
+  paralelo: Rate;
+}> {
+  let data: DolarApiResponse[];
+  try {
+    data = await fetchWithTimeout(DOLARES_URL);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    console.error(`[dolarapi dolares] Failed: ${message}`);
+    return {
+      oficial: { source: "BCV", error: message },
+      paralelo: { source: "Paralelo", error: message },
+    };
+  }
+  return {
+    oficial: readDolarEntry(data, "oficial", "BCV"),
+    paralelo: readDolarEntry(data, "paralelo", "Paralelo"),
+  };
 }
 
 /** Fetch the official BCV EUR rate */

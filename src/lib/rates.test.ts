@@ -18,25 +18,45 @@ const bcvEurSuccess: Rate = {
   source: "BCV",
 };
 
-async function importRatesWithMocks({
+const paraleloSuccess: Rate = {
+  price: 124,
+  updatedAt: "2026-05-25T10:02:00.000Z",
+  source: "Paralelo",
+};
+
+function createMocks({
   bcvUsd = bcvUsdSuccess,
+  paralelo = paraleloSuccess,
   binance = binanceSuccess,
   bcvEur = bcvEurSuccess,
 }: {
   bcvUsd?: Rate;
+  paralelo?: Rate;
   binance?: Rate;
   bcvEur?: Rate;
 } = {}) {
-  vi.resetModules();
-  vi.doMock("./bcv", () => ({
-    fetchBcvUsd: vi.fn().mockResolvedValue(bcvUsd),
+  return {
+    fetchDolares: vi.fn().mockResolvedValue({ oficial: bcvUsd, paralelo }),
+    fetchBinanceP2PRate: vi.fn().mockResolvedValue(binance),
     fetchBcvEur: vi.fn().mockResolvedValue(bcvEur),
+  };
+}
+
+async function importRatesWithMocks(
+  options: Parameters<typeof createMocks>[0] = {},
+) {
+  vi.resetModules();
+  const mocks = createMocks(options);
+  vi.doMock("./bcv", () => ({
+    fetchDolares: mocks.fetchDolares,
+    fetchBcvEur: mocks.fetchBcvEur,
   }));
   vi.doMock("./binance", () => ({
-    fetchBinanceRate: vi.fn().mockResolvedValue(binance),
+    fetchBinanceP2PRate: mocks.fetchBinanceP2PRate,
   }));
 
-  return import("./rates");
+  const module = await import("./rates");
+  return { ...module, mocks };
 }
 
 describe("fetchAllRates", () => {
@@ -101,6 +121,7 @@ describe("fetchAllRates", () => {
   it("marks derived rates unavailable when a source fails", async () => {
     const { fetchAllRates } = await importRatesWithMocks({
       binance: { source: "Binance P2P", error: "No P2P SELL ads returned" },
+      paralelo: { source: "Paralelo", error: "HTTP 503" },
     });
 
     const result = await fetchAllRates();
@@ -110,7 +131,7 @@ describe("fetchAllRates", () => {
       null,
     );
     expect(result.cards.find((card) => card.id === "binance-usd")?.error).toBe(
-      "No P2P SELL ads returned",
+      "No P2P SELL ads returned; fallback: HTTP 503",
     );
     expect(result.cards.find((card) => card.id === "bcv-to-usdt")?.value).toBe(
       null,
@@ -134,6 +155,7 @@ describe("fetchAllRates", () => {
     const { fetchAllRates } = await importRatesWithMocks({
       bcvUsd: { source: "BCV", error: "HTTP 503" },
       binance: { source: "Binance P2P", error: "HTTP 503" },
+      paralelo: { source: "Paralelo", error: "HTTP 503" },
       bcvEur: { source: "BCV", error: "HTTP 503" },
     });
 
@@ -143,17 +165,30 @@ describe("fetchAllRates", () => {
   });
 
   it("uses a successful Binance fallback without disabling derived rates", async () => {
-    const { fetchAllRates } = await importRatesWithMocks({
-      binance: { ...binanceSuccess, source: "Paralelo" },
+    const { fetchAllRates, mocks } = await importRatesWithMocks({
+      binance: { source: "Binance P2P", error: "HTTP 451" },
     });
 
     const result = await fetchAllRates();
     const binanceCard = result.cards.find((card) => card.id === "binance-usd");
 
     expect(binanceCard?.title).toBe("Tasa Binance (USDT)");
-    expect(binanceCard?.value).toBe(125);
+    expect(binanceCard?.value).toBe(124);
+    expect(result.raw.binance.source).toBe("Paralelo");
     expect(result.cards.find((card) => card.id === "usdt-to-bcv")?.value).toBe(
-      1.25,
+      1.24,
+    );
+    expect(mocks.fetchDolares).toHaveBeenCalledTimes(1);
+  });
+
+  it("prefers Binance P2P when it succeeds", async () => {
+    const { fetchAllRates } = await importRatesWithMocks();
+
+    const result = await fetchAllRates();
+
+    expect(result.raw.binance.source).toBe("Binance P2P");
+    expect(result.cards.find((card) => card.id === "binance-usd")?.value).toBe(
+      125,
     );
   });
 });

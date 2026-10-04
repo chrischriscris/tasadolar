@@ -28,8 +28,8 @@
 // ---------------------------------------------------------------------------
 
 import type { Rate } from "./types";
-import { fetchBcvUsd, fetchBcvEur } from "./bcv";
-import { fetchBinanceRate } from "./binance";
+import { fetchDolares, fetchBcvEur } from "./bcv";
+import { fetchBinanceP2PRate } from "./binance";
 import { ceilToDecimals } from "./number-format";
 import { formatUpdatedAt } from "./date-format";
 import {
@@ -92,6 +92,16 @@ function getRatePrice(rate: Rate): number | null {
   return ceilToDecimals(rate.price);
 }
 
+/** Binance P2P when available, otherwise dolarapi's paralelo rate */
+function pickUsdtRate(binance: Rate, paralelo: Rate): Rate {
+  if (binance.error === undefined) return binance;
+  if (paralelo.error === undefined) return paralelo;
+  return {
+    source: "Binance P2P",
+    error: `${binance.error}; fallback: ${paralelo.error}`,
+  };
+}
+
 /**
  * Fetch all exchange rates from all sources.
  * Call this in Astro frontmatter:
@@ -106,11 +116,13 @@ export async function fetchAllRates(): Promise<AllRates> {
   if (cachedRates && cachedRates.expiresAt > now) return cachedRates.data;
 
   // -- Fetch all sources in parallel ----------------------------------------
-  const [bcvUsd, binance, bcvEur] = await Promise.all([
-    fetchBcvUsd(),
-    fetchBinanceRate(),
+  const [dolares, binanceP2P, bcvEur] = await Promise.all([
+    fetchDolares(),
+    fetchBinanceP2PRate(),
     fetchBcvEur(),
   ]);
+  const bcvUsd = dolares.oficial;
+  const binance = pickUsdtRate(binanceP2P, dolares.paralelo);
 
   // -- Extract prices (null if failed) --------------------------------------
   const bcvUsdPrice = getRatePrice(bcvUsd);
