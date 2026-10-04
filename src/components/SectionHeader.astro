@@ -10,7 +10,15 @@ const { title, lastUpdated, updatedAt } = Astro.props;
 
 <div class="flex items-center justify-between">
   <h2 class="text-lg font-bold text-white">{title}</h2>
-  <time datetime={updatedAt} data-last-updated class="text-sm text-white/50"
-    >{lastUpdated}</time
-  >
+  <div class="flex items-center gap-2">
+    <span
+      data-offline-badge
+      hidden
+      class="rounded-md bg-white/10 px-2 py-0.5 text-xs font-medium text-amber-300/90"
+      >Sin conexión</span
+    >
+    <time datetime={updatedAt} data-last-updated class="text-sm text-white/50"
+      >{lastUpdated}</time
+    >
+  </div>
 </div>

@@ -97,6 +97,12 @@ const nextRoute = rateRoutes[(currentRouteIndex + 1) % rateRoutes.length];
             </h1>
           </div>
           <p class="shrink-0 text-right text-xs text-white/40">
+            <span
+              data-offline-badge
+              hidden
+              class="rounded-md bg-white/10 px-2 py-0.5 text-xs font-medium text-amber-300/90"
+              >Sin conexión</span
+            >{" "}
             <time datetime={fetchedAt} data-last-updated>{lastUpdatedText}</time
             >
           </p>

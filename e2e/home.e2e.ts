@@ -81,3 +81,29 @@ test.describe("exchange gap", () => {
     }
   });
 });
+
+test.describe("last updated label", () => {
+  for (const path of ["/", "/bcv/"]) {
+    test(`${path} shows an absolute fetch time`, async ({ page }) => {
+      await page.goto(path);
+
+      const time = page.locator("time[data-last-updated]");
+      await expect(time).toBeVisible();
+      await expect(time).toHaveAttribute("datetime", /^\d{4}-\d{2}-\d{2}T/);
+      await expect(time).toHaveText(/^(Actualizado |Sin datos)/);
+    });
+  }
+
+  test("offline badge follows connectivity", async ({ page, context }) => {
+    await page.goto("/");
+
+    const badge = page.locator("[data-offline-badge]");
+    await expect(badge).toBeHidden();
+
+    await context.setOffline(true);
+    await expect(badge).toBeVisible();
+
+    await context.setOffline(false);
+    await expect(badge).toBeHidden();
+  });
+});

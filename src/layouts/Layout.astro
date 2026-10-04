@@ -205,6 +205,13 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
         if (refreshIndicator) refreshIndicator.hidden = !visible;
       };
 
+      const syncOfflineBadges = () => {
+        document.querySelectorAll("[data-offline-badge]").forEach((badge) => {
+          badge.hidden = navigator.onLine;
+        });
+      };
+      syncOfflineBadges();
+
       const refreshCachedPage = () => {
         if (!navigator.onLine) return;
 
@@ -231,10 +238,12 @@ const jsonLdText = jsonLd ? JSON.stringify(jsonLd) : undefined;
       };
 
       window.addEventListener("online", () => {
+        syncOfflineBadges();
         refreshCachedPage();
       });
       window.addEventListener("offline", () => {
         setRefreshIndicatorVisible(false);
+        syncOfflineBadges();
       });
 
       if ("serviceWorker" in navigator) {
