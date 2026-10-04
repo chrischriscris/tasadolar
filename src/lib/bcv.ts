@@ -22,12 +22,10 @@ async function fetchWithTimeout(url: string): Promise<DolarApiResponse[]> {
 
   try {
     const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeout);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  } catch (err) {
+    return await res.json();
+  } finally {
     clearTimeout(timeout);
-    throw err;
   }
 }
 
