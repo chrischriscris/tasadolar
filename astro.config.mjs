@@ -6,10 +6,7 @@ import cloudflare from "@astrojs/cloudflare";
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  adapter: cloudflare(),
-  image: {
-    domains: ["flagcdn.com", "public.bnbstatic.com"],
-  },
+  adapter: cloudflare({ imageService: "passthrough" }),
   vite: {
     plugins: [tailwindcss()],
   },

@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import { formatNumber, RATE_DECIMALS } from "@/lib/number-format";
 import { formatEffectiveDate } from "@/lib/date-format";
 import type { RateCardData } from "@/lib/rates";
+import type { RateIcon } from "@/lib/rate-definitions";
 
 interface Props {
   rate: RateCardData;
@@ -14,22 +15,12 @@ const effectiveDateText = rate.effectiveDate
   ? formatEffectiveDate(rate.effectiveDate)
   : undefined;
 
-const getIconUrl = (iconType: string): string => {
-  switch (iconType) {
-    case "bcv":
-      return "https://flagcdn.com/w80/ve.png";
-    case "us":
-      return "https://flagcdn.com/w80/us.png";
-    case "binance":
-      return "https://public.bnbstatic.com/20190405/eb2349c3-b2f8-4a93-a286-8f86a62ea9d8.png";
-    case "eu":
-      return "https://flagcdn.com/w80/eu.png";
-    default:
-      return "";
-  }
-};
-
-const iconUrl = getIconUrl(rate.icon);
+const iconSrc = {
+  bcv: "/rate-icons/ve.png",
+  us: "/rate-icons/us.png",
+  binance: "/rate-icons/binance.png",
+  eu: "/rate-icons/eu.png",
+} satisfies Record<RateIcon, string>;
 const CardTag = rate.href ? "a" : "div";
 const fullValueText =
   rate.value === null
@@ -53,8 +44,8 @@ const fullValueText =
   <div class="flex h-10 w-10 shrink-0 items-center justify-center">
     <div class="h-8 w-8 overflow-hidden rounded-xl">
       <Image
-        src={iconUrl}
-        alt={rate.icon}
+        src={iconSrc[rate.icon]}
+        alt=""
         width={80}
         height={60}
         loading="eager"

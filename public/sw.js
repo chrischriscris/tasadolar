@@ -1,4 +1,4 @@
-const CACHE_NAME = "tasadolar-v10";
+const CACHE_NAME = "tasadolar-v11";
 const APP_SHELL = [
   "/app.webmanifest?start_url=%2F",
   "/favicon.ico",
@@ -13,6 +13,7 @@ const PAGE_ASSET_PREFIXES = [
   "/_astro/",
   "/_image",
   "/icons/",
+  "/rate-icons/",
   "/favicon",
   "/apple-touch-icon.png",
   "/app.webmanifest",
