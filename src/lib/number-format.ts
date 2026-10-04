@@ -11,7 +11,8 @@ export function ceilToDecimals(
 ): number {
   if (!isFinite(value)) return 0;
   const factor = 10 ** decimals;
-  return Math.ceil(value * factor) / factor;
+  // toPrecision(15) strips binary float noise (1.1 * 100 = 110.00000000000001) before ceiling
+  return Math.ceil(Number((value * factor).toPrecision(15))) / factor;
 }
 
 export function formatNumber(value: number, decimals = RATE_DECIMALS): string {
